@@ -1,12 +1,25 @@
+require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
 const User = require("./models/User.js");
 
 const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
+app.use('/api/auth', require('./routes/auth'));
+
 // Connexion à MongoDB
-mongoose.connect(process.env.MONGO_URL, {
+mongoose
+.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -18,13 +31,13 @@ app.get("/", (req, res) => {
   res.json({
     status: "success",
     service: "BeautyConnect API",
-    message: "Connecté à l'API BeautyConnect"
+    message: "Connecté à BeautyConnect"
   });
 });
 
 // Route /api/health (état de l'API et MongoDB)
 app.get("/api/health", (req, res) => {
-  const dbState = mongoose.connection.readyState; // 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+  const dbState = mongoose.connection.readyState;
 
   res.json({
     status: "ok",

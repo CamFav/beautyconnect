@@ -5,9 +5,14 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+logs/
+*.log
 
 # Docker volumes
 mongo_data/
 
 # Environnements
 .env
+.env.local
+
+dist/

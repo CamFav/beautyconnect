@@ -1,21 +1,36 @@
-import { useEffect, useState } from "react";
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, AuthContext } from "./context/AuthContext";
+import { useContext } from "react";
 
-function App() {
-  const [apiMessage, setApiMessage] = useState("");
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Home from "./pages/Home";
 
-  useEffect(() => {
-    fetch("http://localhost:5000/")
-      .then((res) => res.json())
-      .then((data) => setApiMessage(data.message))
-      .catch((err) => console.error("Erreur API:", err));
-  }, []);
-
-  return (
-    <div>
-      <h1>BeautyConnect</h1>
-      <p>{apiMessage}</p>
-    </div>
-  );
+// Protection des routes
+function ProtectedRoute({ children }) {
+  const { user } = useContext(AuthContext);
+  return user ? children : <Navigate to="/login" replace />;
 }
 
-export default App;
+// Application principale
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}

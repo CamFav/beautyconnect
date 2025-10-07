@@ -2,7 +2,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:5173"   # http://localhost:3000 -> Vite (5173 dans le container)
+      - "5173:5173"   # Le port 5173 dans Docker est accessible sur 5173 en local
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -15,7 +15,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "5000:5000"   # http://localhost:5000 -> Express API
+      - "5000:5000"   # API backend accessible sur http://localhost:5000
     volumes:
       - ./backend:/app
       - /app/node_modules
