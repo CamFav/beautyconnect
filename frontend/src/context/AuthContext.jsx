@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from "react";
 import { register, login, getMe } from "../api/authService";
+import { updateRole as apiUpdateRole } from "../api/accountService";
 
 export const AuthContext = createContext();
 
@@ -57,3 +58,25 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+const updateRole = async (role) => {
+  if (!token) throw new Error("Non connecté");
+  const res = await apiUpdateRole(token, role);
+  // remplace le token côté front
+  localStorage.setItem("token", res.token);
+  setToken(res.token);
+  setUser(res.user);
+  // log pour vérifier visuellement
+  console.log("[Auth] Nouveau token (début):", res.token.slice(0, 24), "…");
+  return res.user;
+};
+
+return (
+  <AuthContext.Provider value={{
+    user, token,
+    handleLogin, handleRegister, logout,
+    updateRole, // exposé au reste de l’app
+  }}>
+    {children}
+  </AuthContext.Provider>
+);

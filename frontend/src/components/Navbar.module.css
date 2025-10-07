@@ -1,0 +1,56 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+/* Gauche (logo + menu) */
+.left { display: flex; align-items: center; gap: 16px; }
+.logo { font-size: 18px; font-weight: 700; cursor: pointer; }
+.menu { display: flex; gap: 16px; list-style: none; margin: 0; padding: 0; }
+.menuItem { cursor: pointer; color: #333; }
+.menuItem:hover { color: #111; }
+
+/* Centre (recherche) */
+.center { display: flex; justify-content: center; }
+.search {
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid #ddd; border-radius: 20px;
+  padding: 8px 14px; outline: none;
+}
+
+/* Droite (icônes) */
+.right { display: flex; gap: 12px; justify-content: flex-end; }
+.iconBtn {
+  background: none; border: none; cursor: pointer; font-size: 20px; padding: 6px;
+}
+.iconBtn:focus { outline: 2px solid #a3d1ff; border-radius: 6px; }
+
+/* Burger (mobile) */
+.burger { display: none; background: none; border: 1px solid #ddd; border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+.mobileMenu {
+  display: none;
+  position: absolute; left: 0; right: 0; top: 58px;
+  background: #fff; border-top: 1px solid #eee; box-shadow: 0 6px 12px rgba(0,0,0,.06);
+  padding: 14px 20px;
+}
+.mobileList { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.mobileItem { padding: 8px 0; border-bottom: 1px solid #f1f1f1; }
+.mobileActions { display: flex; gap: 10px; margin-top: 10px; }
+.mobileSearch { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 8px 12px; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .menu { display: none; }
+  .center { display: none; }
+  .burger { display: inline-block; }
+  .mobileMenu.show { display: block; }
+  .navbar { grid-template-columns: auto 1fr auto; }
+}

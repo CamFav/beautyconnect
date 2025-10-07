@@ -68,6 +68,9 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
+app.use('/api/account', require('./routes/account'));
+app.use('/api/pro', require('./routes/pro'));
+
 app.listen(5000, () => {
   console.log("Backend running at http://localhost:5000");
 });
