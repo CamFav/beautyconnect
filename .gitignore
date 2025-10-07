@@ -15,4 +15,5 @@ mongo_data/
 .env
 .env.local
 
-dist/
+dist/login.json
+role.json
