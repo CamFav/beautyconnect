@@ -2,13 +2,10 @@ require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const User = require("./models/User.js");
 const xss = require('xss-clean');
 const helmet = require('helmet');
-const { protect } = require('./middleware/auth');
 
 const app = express();
-
 
 app.disable('x-powered-by');
 
@@ -52,15 +49,14 @@ app.use(
 );
 
 // Les routes doivent venir après Helmet/XSS
-app.use('/api/auth', require('./routes/auth'));
+require('./routes')(app);
 
 // Connexion à MongoDB
+const connectDB = require('./config/db');
 if (process.env.NODE_ENV !== "test") {
-  mongoose
-    .connect(process.env.MONGO_URL)
-    .then(() => console.log("MongoDB connecté"))
-    .catch(err => console.error("Erreur de connexion MongoDB:", err));
+  connectDB();
 }
+
 // Route racine
 app.get("/", (req, res) => {
   res.json({
@@ -82,24 +78,4 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Liste les utilisateurs
-app.get("/api/users", protect, async (req, res) => {
-  try {
-    const users = await User.find().select('-password');
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Bloque la création d'utilisateurs via /api/users
-app.post("/api/users", protect, async (req, res) => {
-  res.status(403).json({ message: "Création via /api/users interdite. Utilisez /api/auth/register." });
-});
-
-app.use('/api/account', require('./routes/account'));
-app.use('/api/pro', require('./routes/pro'));
-
-
 module.exports = app;
-
