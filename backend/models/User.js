@@ -27,6 +27,10 @@ BaseUserSchema.methods.comparePassword = function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// On exporte UNIQUEMENT le modèle de base
+// Exporte UNIQUEMENT le modèle de base
 const BaseUser = mongoose.model('User', BaseUserSchema);
 module.exports = BaseUser;
+
+// charge les discriminators
+require('./Client');
+require('./Pro');
