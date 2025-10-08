@@ -2,7 +2,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "5173:5173"   # Le port 5173 dans Docker est accessible sur 5173 en local
+      - "5173:5173"   # Port docker 5173 mappé au port 5173 local
     volumes:
       - ./frontend:/app
       - /app/node_modules

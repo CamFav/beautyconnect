@@ -4,11 +4,29 @@ import { updateRole as apiUpdateRole } from "../api/accountService";
 
 export const AuthContext = createContext();
 
+/* sanitisation */
+const sanitize = (value) => {
+  if (typeof value !== "string") return value;
+  return value
+    .trim()
+    .replace(/[<>]/g, "") // Retire balises
+    .replace(/[\u200B-\u200D\uFEFF]/g, ""); // Retire caractères invisibles
+};
+
+/* Nettoie tous les champs d’un objet (formData) */
+const sanitizeObject = (obj) => {
+  const cleaned = {};
+  for (const key in obj) {
+    cleaned[key] = sanitize(obj[key]);
+  }
+  return cleaned;
+};
+
+/* Contexte d'authentification */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
 
-  // Récupère le profil utilisateur si token présent
   useEffect(() => {
     const fetchUser = async () => {
       if (!token) return;
@@ -23,15 +41,20 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, [token]);
 
-  // nscription
+  // Inscription
   const handleRegister = async (formData) => {
-    const data = await register(formData);
+    const sanitizedData = sanitizeObject(formData);
+    const data = await register(sanitizedData);
     return data;
   };
 
-  // Connexion 
+  // Connexion
   const handleLogin = async (formData) => {
-    const data = await login(formData);
+    const sanitizedData = sanitizeObject(formData);
+    const data = await login(sanitizedData);
+
+    if (!data.token) throw new Error("Aucun token reçu");
+
     localStorage.setItem("token", data.token);
     setToken(data.token);
     setUser(data.user);
@@ -44,6 +67,18 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
   };
 
+  // Bascule de rôle + refresh du token
+  const updateRole = async (role) => {
+    if (!token) throw new Error("Non connecté");
+    const sanitizedRole = sanitize(role);
+    const res = await apiUpdateRole(token, sanitizedRole);
+    localStorage.setItem("token", res.token);
+    setToken(res.token);
+    setUser(res.user);
+    console.log("[Auth] Nouveau token :", res.token.slice(0, 24), "…");
+    return res.user;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -52,31 +87,11 @@ export const AuthProvider = ({ children }) => {
         handleRegister,
         handleLogin,
         handleLogout,
+        logout: handleLogout,
+        updateRole
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
-
-const updateRole = async (role) => {
-  if (!token) throw new Error("Non connecté");
-  const res = await apiUpdateRole(token, role);
-  // remplace le token côté front
-  localStorage.setItem("token", res.token);
-  setToken(res.token);
-  setUser(res.user);
-  // log pour vérifier visuellement
-  console.log("[Auth] Nouveau token (début):", res.token.slice(0, 24), "…");
-  return res.user;
-};
-
-return (
-  <AuthContext.Provider value={{
-    user, token,
-    handleLogin, handleRegister, logout,
-    updateRole, // exposé au reste de l’app
-  }}>
-    {children}
-  </AuthContext.Provider>
-);

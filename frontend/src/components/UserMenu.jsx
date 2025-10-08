@@ -93,22 +93,13 @@ export default function UserMenu() {
             Mon profil
           </button>
 
-          {/* Bascule rôle */}
-          <button
-            type="button"
-            role="menuitem"
-            onClick={toggleRole}
-            className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm"
-          >
-            {user?.role === "pro" ? "↩️ Revenir client" : "💼 Activer le mode Pro"}
-          </button>
 
           <button
             type="button"
             role="menuitem"
             onClick={() => {
               setOpen(false);
-              /* nav('/settings') bientôt */
+              /* nav('/settings')*/
             }}
             className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm"
           >
@@ -117,6 +108,15 @@ export default function UserMenu() {
 
           <div className="my-2 h-px bg-gray-100" />
 
+        {/* Bascule rôle */}
+          <button
+            type="button"
+            role="menuitem"
+            onClick={toggleRole}
+            className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm"
+          >
+            {user?.role === "pro" ? "Revenir client" : "Activer le mode Pro"}
+          </button>
           <button
             type="button"
             role="menuitem"

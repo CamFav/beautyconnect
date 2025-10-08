@@ -17,3 +17,7 @@ mongo_data/
 
 dist/login.json
 role.json
+
+# Tests
+__tests__/
+coverage/

@@ -23,12 +23,12 @@ jobs:
           MONGO_URL: mongodb://mongo:27017/beautyconnect-test
         run: docker compose up -d mongo backend
 
-      - name: Run Jest tests inside backend container
+      - name: Run Jest tests in backend container
         env:
           JWT_SECRET: testsecret
+          MONGO_URL: mongodb://mongo:27017/beautyconnect-test
           NODE_ENV: test
-        run: |
-          docker compose exec -T backend npm test
+        run: docker compose exec -T backend sh -c "cd /app && npm test"
 
       - name: Stop containers
         if: always()

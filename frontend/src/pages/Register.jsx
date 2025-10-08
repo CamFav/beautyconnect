@@ -11,14 +11,23 @@ export default function Register() {
   });
   const navigate = useNavigate();
 
+  const sanitizeInput = (value) => {
+    return value
+      .trim()
+      .replace(/[<>]/g, "");
+  };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: sanitizeInput(e.target.value),
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await handleRegister(formData); 
+      await handleRegister(formData);
       alert("Inscription réussie !");
       navigate("/login");
     } catch (err) {

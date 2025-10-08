@@ -1,24 +1,28 @@
 const { verifyToken } = require('../utils/jwt');
 
 /**
- * Middleware d'authentification
- * Vérifie token JWT
- * Si valide > ajoute les infos du user décodées à req.user
- * Sinon > renvoie une erreur 401
+ * Middleware d'authentification JWT
+ * Vérifie le token.
+ * Sinon > renvoie 401 avec message clair
  */
 const protect = (req, res, next) => {
   const header = req.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.split(' ')[1] : null;
 
-  if (!token) {
-    return res.status(401).json({ message: 'Token manquant' });
+  // Vérifie que le header commence bien par "Bearer"
+  if (!header.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Token manquant ou mal formé' });
   }
+
+  const token = header.split(' ')[1];
 
   try {
     const decoded = verifyToken(token);
     req.user = decoded;
     next();
   } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expiré' });
+    }
     return res.status(401).json({ message: 'Token invalide' });
   }
 };
