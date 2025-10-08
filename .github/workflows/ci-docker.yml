@@ -28,7 +28,8 @@ jobs:
           JWT_SECRET: testsecret
           MONGO_URL: mongodb://mongo:27017/beautyconnect-test
           NODE_ENV: test
-        run: docker compose exec -T backend sh -c "cd /app && npm test"
+        run: |
+          docker compose run --rm -e JWT_SECRET=testsecret backend sh -c "cd /app && npm test"
 
       - name: Stop containers
         if: always()
