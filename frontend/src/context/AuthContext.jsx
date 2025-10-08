@@ -1,83 +1,114 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useEffect, useRef, useState } from "react";
 import { register, login, getMe } from "../api/authService";
 import { updateRole as apiUpdateRole } from "../api/accountService";
 
 export const AuthContext = createContext();
 
-/* sanitisation */
+/** Sanitize helpers (garde ton util si tu veux) */
 const sanitize = (value) => {
   if (typeof value !== "string") return value;
-  return value
-    .trim()
-    .replace(/[<>]/g, "") // Retire balises
-    .replace(/[\u200B-\u200D\uFEFF]/g, ""); // Retire caractères invisibles
+  return value.trim().replace(/[<>]/g, "").replace(/[\u200B-\u200D\uFEFF]/g, "");
 };
+const sanitizeObject = (obj) =>
+  Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, sanitize(v)]));
 
-/* Nettoie tous les champs d’un objet (formData) */
-const sanitizeObject = (obj) => {
-  const cleaned = {};
-  for (const key in obj) {
-    cleaned[key] = sanitize(obj[key]);
+/** Normalise l'objet user venant de l'API */
+const normalizeUser = (raw) => {
+  if (!raw) return null;
+  const u = { ...raw };
+  // activeRole prioritaire pour l'affichage, fallback sur role si besoin
+  if (!u.activeRole) u.activeRole = u.role ?? "client";
+  // assure l’existence du proProfile (utile côté UI)
+  if (u.activeRole === "pro" && !u.proProfile) {
+    u.proProfile = {
+      businessName: "",
+      status: "freelance",
+      exerciseType: [],
+      experience: "<1 an",
+      location: "",
+      services: [],
+      siret: "",
+    };
   }
-  return cleaned;
+  return u;
 };
 
-/* Contexte d'authentification */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem("token"));
+  const [token, setToken] = useState(() => localStorage.getItem("token") || null);
+  const fetchGen = useRef(0); // évite de prendre en compte des /me obsolètes
 
+  /** Charge /me à chaque token (en ignorant les requêtes obsolètes) */
   useEffect(() => {
-    const fetchUser = async () => {
-      if (!token) return;
+    if (!token) {
+      setUser(null);
+      return;
+    }
+    const gen = ++fetchGen.current;
+
+    (async () => {
       try {
-        const data = await getMe(token);
-        setUser(data);
+        const me = await getMe(token);
+        if (fetchGen.current !== gen) return; // réponse obsolète, on ignore
+        setUser(normalizeUser(me));
       } catch (err) {
-        console.error("Erreur lors de la récupération du profil :", err);
+        if (fetchGen.current !== gen) return;
+        console.error("[Auth] Erreur /me :", err?.response?.data || err.message);
         handleLogout();
       }
-    };
-    fetchUser();
+    })();
   }, [token]);
 
-  // Inscription
+  /** Inscription */
   const handleRegister = async (formData) => {
-    const sanitizedData = sanitizeObject(formData);
-    const data = await register(sanitizedData);
+    const data = await register(sanitizeObject(formData));
     return data;
   };
 
-  // Connexion
+  /** Connexion */
   const handleLogin = async (formData) => {
-    const sanitizedData = sanitizeObject(formData);
-    const data = await login(sanitizedData);
+    const data = await login(sanitizeObject(formData));
+    if (!data?.token) throw new Error("Aucun token reçu");
 
-    if (!data.token) throw new Error("Aucun token reçu");
-
+    // 1) met à jour l'UI immédiatement
+    setUser(normalizeUser(data.user));
+    // 2) persiste le token (déclenche le /me ensuite)
     localStorage.setItem("token", data.token);
     setToken(data.token);
-    setUser(data.user);
   };
 
-  // Déconnexion
+  /** Déconnexion */
   const handleLogout = () => {
     localStorage.removeItem("token");
     setUser(null);
     setToken(null);
   };
 
-  // Bascule de rôle + refresh du token
-  const updateRole = async (role) => {
-    if (!token) throw new Error("Non connecté");
-    const sanitizedRole = sanitize(role);
-    const res = await apiUpdateRole(token, sanitizedRole);
+  /** Toggle / mise à jour du rôle (activeRole) */
+const updateRole = async (role) => {
+  if (!token) throw new Error("Non connecté");
+
+  const sanitizedRole = sanitize(role);
+  const res = await apiUpdateRole(token, sanitizedRole);
+
+  console.log("[updateRole] Réponse backend :", res);
+
+  // Mise à jour du token
+  if (res.token) {
     localStorage.setItem("token", res.token);
     setToken(res.token);
-    setUser(res.user);
-    console.log("[Auth] Nouveau token :", res.token.slice(0, 24), "…");
-    return res.user;
-  };
+  }
+
+  // fusionne les données reçues
+  setUser((prev) => ({
+    ...prev,
+    ...res.user,
+    activeRole: sanitizedRole,
+  }));
+
+  return res.user;
+};
+
 
   return (
     <AuthContext.Provider
@@ -88,7 +119,7 @@ export const AuthProvider = ({ children }) => {
         handleLogin,
         handleLogout,
         logout: handleLogout,
-        updateRole
+        updateRole,
       }}
     >
       {children}

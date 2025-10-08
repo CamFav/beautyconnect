@@ -20,5 +20,6 @@ export const getMe = async (token) => {
   const res = await axios.get(`${API_URL}/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  console.log("[getMe] Réponse :", res.data);
   return res.data;
 };

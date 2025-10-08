@@ -9,14 +9,14 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 
 // Génère un token
 const generateToken = (user) => {
-  // accepte user._id, user.id, user.sub ou un string id
   const raw = user && (user._id || user.id || user.sub || user);
   const sub = raw ? String(raw) : undefined;
 
   const payload = {
     sub,
     email: user && user.email,
-    role: user && user.role,
+    // activeRole si présent, sinon l’ancien champ role
+    activeRole: (user && user.activeRole) || (user && user.role),
   };
 
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -25,7 +25,7 @@ const generateToken = (user) => {
   });
 };
 
-// Verifie et décode un token JWT
+// Vérifie et décode un token JWT
 const verifyToken = (token) => {
   return jwt.verify(token, process.env.JWT_SECRET, { issuer: JWT_ISSUER });
 };

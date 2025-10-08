@@ -15,7 +15,7 @@ exports.protect = (req, res, next) => {
     req.user = { 
       id: decoded.sub, 
       email: decoded.email,
-      role: decoded.role 
+      activeRole: decoded.activeRole
     };
 
     next();

@@ -21,12 +21,14 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Payload envoyé :", formData);
+  
     try {
       await handleLogin(formData);
       alert("Connexion réussie !");
-      navigate("/");
+      navigate("/home");
     } catch (err) {
-      console.error(err);
+      console.error("Erreur login :",err);
       alert("Erreur lors de la connexion");
     }
   };

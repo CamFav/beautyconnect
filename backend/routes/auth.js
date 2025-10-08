@@ -1,20 +1,17 @@
 const express = require('express');
-const BaseUser = require('../models/User');
-const Client = require('../models/Client');
-const Pro = require('../models/Pro');
+const User = require('../models/User');
 const { generateToken } = require('../utils/jwt');
 const { protect } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
+
 const router = express.Router();
 
-/* ROUTE : POST /api/auth/register
-Inscrire un nouvel utilisateur */
+/* POST /api/auth/register */
 router.post(
   '/register',
   [
     body('name')
       .trim()
-      .escape()
       .notEmpty().withMessage('Le nom est requis')
       .isLength({ min: 2 }).withMessage('Le nom doit contenir au moins 2 caractères'),
 
@@ -26,71 +23,41 @@ router.post(
 
     body('password')
       .trim()
-      .escape()
       .notEmpty().withMessage('Le mot de passe est requis')
       .isLength({ min: 6 }).withMessage('Le mot de passe doit contenir au moins 6 caractères'),
 
-    body('role')
+    body('activeRole')
       .optional()
-      .trim()
-      .escape()
       .isIn(['client', 'pro']).withMessage("Le rôle doit être 'client' ou 'pro'"),
-
-    body('businessName')
-      .if(body('role').equals('pro'))
-      .trim()
-      .escape()
-      .notEmpty().withMessage('Le nom du commerce est requis pour un compte pro'),
-
-    body('siret')
-      .if(body('role').equals('pro'))
-      .trim()
-      .escape()
-      .notEmpty().withMessage('Le numéro de SIRET est requis pour un compte pro'),
-
-    body('location')
-      .if(body('role').equals('pro'))
-      .trim()
-      .escape()
-      .notEmpty().withMessage('La localisation est requise pour un compte pro'),
-
-    body('services')
-      .if(body('role').equals('pro'))
-      .isArray().withMessage('Les services doivent être un tableau')
-      .notEmpty().withMessage('Au moins un service est requis pour un compte pro'),
   ],
   async (req, res) => {
+    console.log("Requête reçue pour /register :", req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
     try {
-      const { name, email, password, role, businessName, siret, location, services } = req.body;
+      const {
+        name,
+        email,
+        password,
+        activeRole, // 'client' ou 'pro'
+        proProfile = {} // si le user s'inscrit en pro
+      } = req.body;
 
-      const existingUser = await BaseUser.findOne({ email });
+      const existingUser = await User.findOne({ email });
       if (existingUser) {
         return res.status(400).json({ message: 'Email déjà utilisé' });
       }
 
-      let newUser;
-      if (role === 'pro') {
-        newUser = new Pro({
-          name,
-          email,
-          password,
-          businessName,
-          siret,
-          location,
-          services
-        });
-      } else {
-        newUser = new Client({
-          name,
-          email,
-          password
-        });
-      }
+      const newUser = new User({
+        name,
+        email,
+        password,
+        activeRole: activeRole || 'client',
+        proProfile: activeRole === 'pro' ? proProfile : undefined
+      });
 
       await newUser.save();
 
@@ -100,7 +67,7 @@ router.post(
           id: newUser._id,
           name: newUser.name,
           email: newUser.email,
-          role: newUser.role
+          activeRole: newUser.activeRole
         }
       });
     } catch (err) {
@@ -110,9 +77,7 @@ router.post(
   }
 );
 
-/* ROUTE : POST /api/auth/login
-   Authentification
-*/
+/* POST /api/auth/login */
 router.post(
   '/login',
   [
@@ -124,7 +89,6 @@ router.post(
 
     body('password')
       .trim()
-      .escape()
       .notEmpty().withMessage('Mot de passe requis'),
   ],
   async (req, res) => {
@@ -135,8 +99,7 @@ router.post(
 
     try {
       const { email, password } = req.body;
-
-      const user = await BaseUser.findOne({ email }).select('+password');
+      const user = await User.findOne({ email }).select('+password');
       if (!user) {
         return res.status(400).json({ message: 'Utilisateur introuvable' });
       }
@@ -155,7 +118,8 @@ router.post(
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role
+          activeRole: user.activeRole,
+          proProfile: user.proProfile
         }
       });
     } catch (err) {
@@ -165,17 +129,21 @@ router.post(
   }
 );
 
-/* ROUTE : GET /api/auth/me
-   Récupère le profil de l'utilisateur connecté
-*/
+/* GET /api/auth/me */
 router.get('/me', protect, async (req, res) => {
   try {
-    if (!req.user || !req.user.sub) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({ message: 'Token invalide' });
     }
-    
-    const user = await BaseUser.findById(req.user.sub).select('-password');
-    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    const user = await User.findById(req.user.id)
+      .select('-password')
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
     res.json(user);
   } catch (err) {
     console.error(err);

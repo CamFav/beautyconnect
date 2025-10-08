@@ -12,21 +12,33 @@ const ProSchema = new mongoose.Schema({
     default: '',
     trim: true
   },
-  location: {
-    type: String,
-    default: '',
-    trim: true
-  },
+
   services: {
     type: [String],
     default: []
-  }
-}, { timestamps: true });
+  },
 
 
-// ddisponibilité, photos, tarifs, etc.
+  status: {
+    type: String,
+    enum: ['salon', 'freelance'],
+    default: 'freelance'
+  },
 
-// Discriminator
+  // domicile / extérieur / les deux
+  exerciseType: {
+    type: [String],
+    default: []
+  },
+
+  experience: {
+  type: String,
+  enum: ["<1 an", "1 an", "2+ ans", "5+ ans"],
+  required: true
+    }
+}, {
+  timestamps: true
+});
+
 const Pro = BaseUser.discriminator('pro', ProSchema);
-
 module.exports = Pro;

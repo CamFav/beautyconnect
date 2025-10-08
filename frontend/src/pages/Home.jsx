@@ -1,16 +1,14 @@
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import Feed from "../components/Feed";
+import ProDashboard from "../components/ProDashboard";
 
 export default function Home() {
-  const { user, handleLogout } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
 
-  if (!user) return <p>Chargement...</p>;
+  if (!user) {
+    return <p>Chargement...</p>;
+  }
 
-  return (
-    <div style={{ padding: 20 }}>
-      <h1>Bienvenue, {user.name}</h1>
-      <p>Email : {user.email}</p>
-      <button onClick={handleLogout}>Se déconnecter</button>
-    </div>
-  );
+  return user.activeRole === "pro" ? <ProDashboard /> : <Feed />;
 }

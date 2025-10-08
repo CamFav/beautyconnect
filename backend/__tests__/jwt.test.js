@@ -19,7 +19,7 @@ describe('Utils - JWT', () => {
 
     expect(decoded).toHaveProperty('sub', '1234567890');
     expect(decoded).toHaveProperty('email', 'test@example.com');
-    expect(decoded).toHaveProperty('role', 'client');
+    expect(decoded).toHaveProperty('activeRole', 'client');
     expect(decoded).toHaveProperty('iss', 'beautyconnect');
   });
 

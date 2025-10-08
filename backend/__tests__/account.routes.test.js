@@ -48,7 +48,7 @@ describe('PATCH /api/account/role', () => {
       .send({ role: 'hacker' });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body).toHaveProperty('errors');
+    expect(res.body).toHaveProperty('message', 'Rôle invalide');
   });
 
   test('✅ 200 si mise à jour correcte', async () => {
@@ -59,7 +59,7 @@ describe('PATCH /api/account/role', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('user');
-    expect(res.body.user).toHaveProperty('role', 'pro');
+    expect(res.body.user).toHaveProperty('activeRole', 'pro');
     expect(res.body).toHaveProperty('token');
   });
 });

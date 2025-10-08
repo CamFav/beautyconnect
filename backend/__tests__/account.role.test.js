@@ -40,7 +40,7 @@ describe('PATCH /api/account/role', () => {
       .send({ role: 'pro' });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.user.role).toBe('pro');
+    expect(res.body.user.activeRole).toBe('pro');
     expect(res.body).toHaveProperty('token');
   });
 
