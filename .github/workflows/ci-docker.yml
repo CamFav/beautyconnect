@@ -2,44 +2,34 @@ name: CI Tests (Docker)
 
 on:
   push:
-    branches: [ dev, main ]
+    branches: [ dev ]
   pull_request:
-    branches: [ dev, main ]
+    branches: [ dev ]
 
 jobs:
   test-backend:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Récupération du code
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      # 2. Login Docker Hub
-      # - name: Login to Docker Hub
-      #   uses: docker/login-action@v3
-      #   with:
-      #     username: ${{ secrets.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_PASSWORD }}
-
-      # 3. Build des services via docker-compose
-      - name: Build Docker Images
+      - name: Build containers
         run: docker compose build
 
-      # 4. Lancer juste le backend + mongo
-      - name: Run containers
+      - name: Start backend & mongo
         env:
-          MONGO_URL: mongodb://mongo:27017/beautyconnect
           JWT_SECRET: testsecret
+          MONGO_URL: mongodb://mongo:27017/beautyconnect-test
+        run: docker compose up -d mongo backend
+
+      - name: Run Jest tests inside backend container
+        env:
+          JWT_SECRET: testsecret
+          NODE_ENV: test
         run: |
-          docker compose up -d mongo
-          docker compose up -d backend
+          docker compose exec -T backend npm test
 
-      # 5. Lancer les tests dans le conteneur backend
-      - name: Run Jest tests in container
-        run: docker compose exec -e JWT_SECRET=testsecret backend npm test
-
-      # 6. Nettoyage (optionnel)
       - name: Stop containers
         if: always()
         run: docker compose down
