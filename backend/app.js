@@ -48,7 +48,8 @@ app.use(
   })
 );
 
-require('./routes')(app);
+
+require('./routes/router')(app);
 
 // Connexion à MongoDB
 const connectDB = require('./config/db');

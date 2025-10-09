@@ -1,4 +1,5 @@
-const app = require('./index');
+require('dotenv').config();
+const app = require('./app');
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(5000, () => {
