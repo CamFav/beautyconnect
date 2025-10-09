@@ -2,41 +2,31 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext.jsx";
 
-import Layout from "./components/Layout.jsx";
-import Home from "./pages/Home.jsx";
-import Login from "./pages/Login.jsx";
-import Register from "./pages/Register.jsx";
-import Profile from "./pages/Profile.jsx";
-import Landing from "./pages/Landing.jsx";
-import RegisterPro from "./pages/RegisterPro.jsx";
-import Settings from "./pages/Settings";
+import Layout from "./components/layout/Layout.jsx";
+import Home from "./pages/home/Home.jsx";
+import Login from "./pages/auth/Login.jsx";
+import Register from "./pages/auth/Register.jsx";
+import Profile from "./pages/user/Profile.jsx";
+import Landing from "./pages/home/Landing.jsx";
+import RegisterPro from "./pages/auth/RegisterPro.jsx";
+import Settings from "./pages/user/Settings.jsx";
 
 function ProtectedRoute({ children }) {
-  const { user, token } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
 
-  // Vérifier le token
-  if (token && !user) {
-    return <p style={{ textAlign: "center" }}>Chargement...</p>;
-  }
-
-  // Sinon on vérifie si user existe
   return user ? children : <Navigate to="/login" replace />;
 }
 
-// Empêcher les users déjà connectés d'accéder à /login ou /register
 function PublicRoute({ children }) {
   const { user } = useContext(AuthContext);
   return user ? <Navigate to="/home" replace /> : children;
 }
 
 export default function App() {
-  const { token } = useContext(AuthContext);
   return (
     <BrowserRouter>
       <Routes>
-
         <Route path="/" element={<Landing />} />
-
 
         {/* Routes publiques */}
         <Route
@@ -95,7 +85,8 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        {/* allback */}
+
+        {/* fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

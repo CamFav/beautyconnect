@@ -1,10 +1,10 @@
 import { createContext, useEffect, useRef, useState } from "react";
-import { register, login, getMe } from "../api/authService";
-import { updateRole as apiUpdateRole } from "../api/accountService";
+import { register, login, getMe } from "../api/auth.service";
+import { updateRole as apiUpdateRole } from "../api/user.service";
 
 export const AuthContext = createContext();
 
-/** Sanitize helpers (garde ton util si tu veux) */
+/** Sanitize helpers */
 const sanitize = (value) => {
   if (typeof value !== "string") return value;
   return value.trim().replace(/[<>]/g, "").replace(/[\u200B-\u200D\uFEFF]/g, "");
@@ -16,9 +16,8 @@ const sanitizeObject = (obj) =>
 const normalizeUser = (raw) => {
   if (!raw) return null;
   const u = { ...raw };
-  // activeRole prioritaire pour l'affichage, fallback sur role si besoin
   if (!u.activeRole) u.activeRole = u.role ?? "client";
-  // assure l’existence du proProfile (utile côté UI)
+
   if (u.activeRole === "pro" && !u.proProfile) {
     u.proProfile = {
       businessName: "",
@@ -36,9 +35,9 @@ const normalizeUser = (raw) => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem("token") || null);
-  const fetchGen = useRef(0); // évite de prendre en compte des /me obsolètes
+  const fetchGen = useRef(0);
 
-  /** Charge /me à chaque token (en ignorant les requêtes obsolètes) */
+  /** Charge /me à chaque token */
   useEffect(() => {
     if (!token) {
       setUser(null);
@@ -48,8 +47,8 @@ export const AuthProvider = ({ children }) => {
 
     (async () => {
       try {
-        const me = await getMe(token);
-        if (fetchGen.current !== gen) return; // réponse obsolète, on ignore
+        const me = await getMe();
+        if (fetchGen.current !== gen) return;
         setUser(normalizeUser(me));
       } catch (err) {
         if (fetchGen.current !== gen) return;
@@ -70,9 +69,9 @@ export const AuthProvider = ({ children }) => {
     const data = await login(sanitizeObject(formData));
     if (!data?.token) throw new Error("Aucun token reçu");
 
-    // 1) met à jour l'UI immédiatement
+    // maj immédiate de l'UI
     setUser(normalizeUser(data.user));
-    // 2) persiste le token (déclenche le /me ensuite)
+    // persistance
     localStorage.setItem("token", data.token);
     setToken(data.token);
   };
@@ -84,31 +83,30 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
   };
 
-  /** Toggle / mise à jour du rôle (activeRole) */
-const updateRole = async (role) => {
-  if (!token) throw new Error("Non connecté");
+  /** Mise à jour du rôle */
+  const updateRole = async (role) => {
+    if (!token) throw new Error("Non connecté");
 
-  const sanitizedRole = sanitize(role);
-  const res = await apiUpdateRole(token, sanitizedRole);
+    const sanitizedRole = sanitize(role);
+    const res = await apiUpdateRole(sanitizedRole); // ✅ plus de token ici
 
-  console.log("[updateRole] Réponse backend :", res);
+    console.log("[updateRole] Réponse backend :", res);
 
-  // Mise à jour du token
-  if (res.token) {
-    localStorage.setItem("token", res.token);
-    setToken(res.token);
-  }
+    // Mise à jour du token si renvoyé
+    if (res.token) {
+      localStorage.setItem("token", res.token);
+      setToken(res.token);
+    }
 
-  // fusionne les données reçues
-  setUser((prev) => ({
-    ...prev,
-    ...res.user,
-    activeRole: sanitizedRole,
-  }));
+    // fusion des données
+    setUser((prev) => ({
+      ...prev,
+      ...res.user,
+      activeRole: sanitizedRole,
+    }));
 
-  return res.user;
-};
-
+    return res.user;
+  };
 
   return (
     <AuthContext.Provider
