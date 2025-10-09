@@ -48,7 +48,6 @@ app.use(
   })
 );
 
-// Les routes doivent venir après Helmet/XSS
 require('./routes')(app);
 
 // Connexion à MongoDB
