@@ -14,6 +14,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Create backend .env file
+        run: |
+          echo "JWT_SECRET=testsecret" >> backend/.env
+          echo "MONGO_URL=mongodb://mongo:27017/beautyconnect-test" >> backend/.env
+
       - name: Build containers
         run: docker compose build
 

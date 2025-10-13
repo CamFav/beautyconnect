@@ -101,7 +101,7 @@ export default function ProProfileView({ user }) {
         </p>
       </section>
 
-      {/* ✅ SECTION MODIFIÉE : Dernières publications */}
+      {/* Dernières publications */}
       <section className="bg-white p-5 rounded shadow">
         <h2 className="text-xl font-semibold mb-4">Dernières publications</h2>
 
