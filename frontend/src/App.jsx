@@ -6,10 +6,13 @@ import Layout from "./components/layout/Layout.jsx";
 import Home from "./pages/home/Home.jsx";
 import Login from "./pages/auth/Login.jsx";
 import Register from "./pages/auth/Register.jsx";
-import Profile from "./pages/user/Profile.jsx";
 import Landing from "./pages/home/Landing.jsx";
 import RegisterPro from "./pages/auth/RegisterPro.jsx";
 import Settings from "./pages/user/Settings.jsx";
+import MyProfile from "./pages/user/MyProfile.jsx";
+import UserProfile from "./pages/user/UserProfile.jsx";
+
+
 
 function ProtectedRoute({ children }) {
   const { user } = useContext(AuthContext);
@@ -65,16 +68,31 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+  
+        {/* Profil connecté*/}
         <Route
           path="/profile"
           element={
             <ProtectedRoute>
               <Layout>
-                <Profile />
+                <MyProfile />
               </Layout>
             </ProtectedRoute>
           }
         />
+
+        {/* Profil public */}
+        <Route
+          path="/profile/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <UserProfile />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/settings"
           element={

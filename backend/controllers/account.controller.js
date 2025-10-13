@@ -1,16 +1,21 @@
 const BaseUser = require('../models/User');
 const { generateToken } = require('../utils/jwt');
 
+
+// Met à jour le rôle actif de l'utilisateur et génère un nouveau token
 exports.updateRole = async (req, res) => {
   try {
     const userId = req.user.id;
     const { role } = req.body;
 
+    // Validation du rôle
     if (!['pro', 'client'].includes(role)) {
       return res.status(400).json({ message: 'Rôle invalide' });
     }
 
     const user = await BaseUser.findById(userId);
+  
+    // Vérification que l'utilisateur existe
     if (!user) {
       return res.status(404).json({ message: 'Utilisateur introuvable' });
     }
