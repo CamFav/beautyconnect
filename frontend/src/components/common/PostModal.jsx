@@ -3,9 +3,9 @@ import {
   favoritePost,
   updatePost,
   deletePost,
-} from "../api/post.service";
+} from "../../api/post.service";
 import { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import Modal from "./Modal";
 
 export default function PostModal({

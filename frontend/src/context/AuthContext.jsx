@@ -78,11 +78,9 @@ export const AuthProvider = ({ children }) => {
     const data = await login(sanitizeObject(formData));
     if (!data?.token) throw new Error("Aucun token reçu");
 
-    // maj immédiate de l'UI
-    setUser(normalizeUser(data.user));
-    // persistance
     localStorage.setItem("token", data.token);
     setToken(data.token);
+    setUser(normalizeUser(data.user));
   };
 
   /** Déconnexion */

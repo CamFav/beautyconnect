@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import CreatePostModal from "../../components/posts/CreatePostModal";
+import CreatePostModal from "../posts/components/CreatePostModal";
 import { AuthContext } from "../../context/AuthContext";
 import { createPost } from "../../api/post.service";
 
@@ -20,12 +20,16 @@ export default function ProDashboard() {
       console.log("Post créé :", response);
       alert("Votre publication a été ajoutée avec succès !");
       setShowModal(false);
-      
-      // TODO: rafraîchir la liste des posts ou rediriger
 
+      // TODO: rafraîchir la liste des posts ou rediriger
     } catch (error) {
-      console.error("Erreur lors de la création du post :", error.response?.data || error.message);
-      alert(error.response?.data?.message || "Erreur lors de la création du post");
+      console.error(
+        "Erreur lors de la création du post :",
+        error.response?.data || error.message
+      );
+      alert(
+        error.response?.data?.message || "Erreur lors de la création du post"
+      );
     }
   };
 

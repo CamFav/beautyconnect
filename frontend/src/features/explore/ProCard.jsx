@@ -1,54 +1,29 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import Avatar from "../../components/common/Avatar";
 
+// Carte affichant un pro avec bouton suivre / ne plus suivre
 export default function ProCard({ pro, isFollowing, onFollow }) {
-  if (!pro.proProfile) return null;  
+  if (!pro.proProfile) return null;
   const navigate = useNavigate();
-  const [imgError, setImgError] = useState(false);
 
-  // Nom à afficher selon le statut
   const displayName =
     pro.proProfile?.status === "freelance"
       ? pro.name
-      : (pro.proProfile?.businessName || pro.name);
+      : pro.proProfile?.businessName || pro.name;
 
-  // Initiales fallback
-  const initials =
-    (displayName ||
-      pro?.email ||
-      "?")
-      .trim()
-      .charAt(0)
-      .toUpperCase();
-
-  // URL de l’avatar si dispo
-  const avatar =
-    !imgError &&
-    (pro.avatarPro ||
-      pro.avatarClient);
+  const avatarUrl = pro.avatarPro || pro.avatarClient;
 
   const handleNavigate = () => {
     navigate(`/profile/${pro._id}`);
   };
 
   return (
-    <div className="bg-white border rounded-xl shadow-sm p-4 flex flex-col">
+    <div className="bg-white border rounded-xl shadow-sm p-4 flex flex-col min-h-[180px]">
       <div
         className="flex items-center gap-4 mb-4 cursor-pointer"
         onClick={handleNavigate}
       >
-        {avatar ? (
-          <img
-            src={avatar}
-            alt={displayName}
-            className="w-16 h-16 rounded-full object-cover border"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className="w-16 h-16 rounded-full bg-gray-400 flex items-center justify-center text-white text-xl border">
-            {initials}
-          </div>
-        )}
+        <Avatar src={avatarUrl} name={displayName} size={64} />
 
         <div className="flex-1">
           <h2 className="text-lg font-semibold">{displayName}</h2>
@@ -65,7 +40,7 @@ export default function ProCard({ pro, isFollowing, onFollow }) {
       </div>
 
       <button
-        onClick={onFollow}
+        onClick={() => onFollow && onFollow()}
         className={`mt-auto px-4 py-2 rounded-lg text-sm font-medium transition ${
           isFollowing
             ? "bg-red-500 text-white hover:bg-red-600"

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getPosts, likePost, favoritePost } from "../../api/post.service";
 import { useAuth } from "../../context/AuthContext";
+import Avatar from "../../components/common/Avatar";
 
 export default function Feed() {
   const [posts, setPosts] = useState([]);
@@ -103,17 +104,12 @@ export default function Feed() {
                     to={profileLink}
                     className="flex items-center space-x-2 cursor-pointer"
                   >
-                    {avatar ? (
-                      <img
-                        src={avatar}
-                        alt="avatar"
-                        className="w-10 h-10 rounded-full object-cover border"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-lg font-medium text-white">
-                        {displayName[0]?.toUpperCase() || "?"}
-                      </div>
-                    )}
+                    <Avatar
+                      src={avatar}
+                      alt={displayName}
+                      size={40}
+                      fallback={displayName[0]?.toUpperCase() || "?"}
+                    />
                     <span className="font-medium">{displayName}</span>
                   </Link>
                 ) : (

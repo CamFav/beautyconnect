@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useAuth } from "../../context/AuthContext";
-import { followUser } from "../../api/user.service";
-import PostModal from "../../components/PostModal";
+import { useAuth } from "../../../context/AuthContext";
+import { followUser } from "../../../api/user.service";
+import PostModal from "../../../components/common/PostModal";
+import Avatar from "../../../components/common/Avatar";
 
 export default function ProProfileView({ user }) {
   const [posts, setPosts] = useState([]);
@@ -12,10 +13,7 @@ export default function ProProfileView({ user }) {
 
   const isOwner = currentUser?._id === user._id;
 
-  // état pour savoir si on suit déjà ce prestataire
   const [isFollowing, setIsFollowing] = useState(false);
-
-  // état pour suivre le nombre d'abonnés dynamiquement
   const [followersCount, setFollowersCount] = useState(
     user.followers?.length || 0
   );
@@ -23,7 +21,6 @@ export default function ProProfileView({ user }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Récupération des posts
         const res = await axios.get(
           `http://localhost:5000/api/posts?provider=${user._id}`
         );
@@ -35,7 +32,6 @@ export default function ProProfileView({ user }) {
         );
       }
 
-      // Vérifier si l'utilisateur courant suit ce prestataire
       if (currentUser && user.followers?.includes(currentUser._id)) {
         setIsFollowing(true);
       }
@@ -60,7 +56,6 @@ export default function ProProfileView({ user }) {
     }
   };
 
-  // gestion du follow / unfollow
   const handleFollow = async () => {
     if (!token) {
       alert("Vous devez être connecté pour vous abonner.");
@@ -80,21 +75,16 @@ export default function ProProfileView({ user }) {
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          {user.avatarPro ? (
-            <img
-              src={user.avatarPro}
-              alt="avatar pro"
-              className="w-20 h-20 rounded-full object-cover border"
-            />
-          ) : (
-            <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center text-2xl font-medium">
-              {user.proProfile?.status === "freelance"
-                ? user.name?.[0]?.toUpperCase()
-                : user.proProfile?.businessName?.[0]?.toUpperCase() ||
-                  user.name?.[0]?.toUpperCase() ||
-                  "?"}
-            </div>
-          )}
+          <Avatar
+            src={user.avatarPro}
+            name={
+              user.proProfile?.status === "freelance"
+                ? user.name
+                : user.proProfile?.businessName || user.name
+            }
+            size={80}
+          />
+
           <div>
             <h1 className="text-2xl font-bold text-gray-800">
               {user.proProfile?.status === "freelance"
@@ -200,7 +190,6 @@ export default function ProProfileView({ user }) {
         )}
       </section>
 
-      {/* Modal du post */}
       <PostModal
         post={selectedPost}
         isOpen={!!selectedPost}

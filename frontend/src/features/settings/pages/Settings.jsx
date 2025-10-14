@@ -1,7 +1,7 @@
 import { useContext, useMemo, useState } from "react";
-import { AuthContext } from "../../context/AuthContext";
-import ClientSettings from "../../components/settings/ClientSettings";
-import ProSettings from "../../components/settings/ProSettings.jsx";
+import { AuthContext } from "../../../context/AuthContext.jsx";
+import ClientSettings from "../components/ClientSettings.jsx";
+import ProSettings from "../components/ProSettings.jsx";
 
 export default function Settings() {
   const { user, token } = useContext(AuthContext);

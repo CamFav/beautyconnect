@@ -1,7 +1,7 @@
 import { useContext } from "react";
-import { AuthContext } from "../../context/AuthContext";
-import Feed from "../../components/feed/Feed";
-import ProDashboard from "../../components/dashboard/ProDashboard";
+import { AuthContext } from "../../../context/AuthContext";
+import Feed from "../../feed/Feed";
+import ProDashboard from "../../dashboard/ProDashboard";
 
 export default function Home() {
   const { user } = useContext(AuthContext);

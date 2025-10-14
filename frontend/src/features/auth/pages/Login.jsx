@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
-import { AuthContext } from "../../context/AuthContext";
+import { AuthContext } from "../../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import { sanitizeInput } from "../../utils/sanitize";
+import { sanitizeInput } from "../../../utils/sanitize";
 
 export default function Login() {
   const { handleLogin } = useContext(AuthContext);
@@ -50,7 +50,9 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Mot de passe</label>
+            <label className="block text-sm font-medium mb-1">
+              Mot de passe
+            </label>
             <input
               type="password"
               name="password"

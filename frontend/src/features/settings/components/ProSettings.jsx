@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Avatar from "../../../components/common/Avatar";
 
 const API_BASE = "http://localhost:5000/api/account";
 const SERVICE_OPTIONS = [
@@ -14,7 +15,10 @@ const SERVICE_OPTIONS = [
 
 const clean = (v) =>
   typeof v === "string"
-    ? v.trim().replace(/[<>]/g, "").replace(/[\u200B-\u200D\uFEFF]/g, "")
+    ? v
+        .trim()
+        .replace(/[<>]/g, "")
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")
     : v;
 
 export default function ProSettings({ user, token, headers, setMessage }) {
@@ -158,19 +162,17 @@ export default function ProSettings({ user, token, headers, setMessage }) {
       >
         <h3 className="font-medium text-gray-800">Avatar Pro</h3>
         <div className="flex items-center gap-4">
-          {avatarProPreview ? (
-            <img
-              src={avatarProPreview}
-              alt="avatar pro preview"
-              className="w-16 h-16 rounded-full object-cover border"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center text-xl font-medium">
-              {user?.proProfile?.businessName?.[0]?.toUpperCase() ||
-                user?.name?.[0]?.toUpperCase() ||
-                "?"}
-            </div>
-          )}
+          <Avatar
+            src={avatarProPreview}
+            name={
+              user?.proProfile?.status === "freelance"
+                ? user?.name
+                : user?.proProfile?.businessName || user?.name
+            }
+            email={user?.email}
+            size={64}
+            className="border"
+          />
 
           <input
             type="file"
@@ -187,9 +189,7 @@ export default function ProSettings({ user, token, headers, setMessage }) {
             savingAvatarPro ? "bg-gray-300" : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
-          {savingAvatarPro
-            ? "Enregistrement…"
-            : "Mettre à jour avatar pro"}
+          {savingAvatarPro ? "Enregistrement…" : "Mettre à jour avatar pro"}
         </button>
       </form>
 
@@ -270,9 +270,7 @@ export default function ProSettings({ user, token, headers, setMessage }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Expérience
-          </label>
+          <label className="block text-sm font-medium mb-1">Expérience</label>
           <input
             type="text"
             className="w-full border rounded px-3 py-2 bg-gray-100"

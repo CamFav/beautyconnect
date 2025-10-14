@@ -4,7 +4,7 @@ import { AuthContext } from "../../../context/AuthContext";
 import { upgradeUserToPro } from "../../../api/account.service";
 
 import Step1ActivityType from "./steps/Step1ActivityType";
-import Step2SalonFreelance from "./steps/Step2Type";
+import Step2Type from "./steps/Step2Type";
 import Step3Experience from "./steps/Step3Experience";
 import Step4Siret from "./steps/Step4Siret";
 import Step5Location from "./steps/Step5Location";

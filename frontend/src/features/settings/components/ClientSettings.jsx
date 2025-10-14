@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Avatar from "../../../components/common/Avatar";
 
 const API_BASE = "http://localhost:5000/api/account";
 
 const clean = (v) =>
   typeof v === "string"
-    ? v.trim().replace(/[<>]/g, "").replace(/[\u200B-\u200D\uFEFF]/g, "")
+    ? v
+        .trim()
+        .replace(/[<>]/g, "")
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")
     : v;
 
 export default function ClientSettings({ user, token, headers, setMessage }) {
@@ -125,17 +129,14 @@ export default function ClientSettings({ user, token, headers, setMessage }) {
       >
         <h3 className="font-medium text-gray-800">Avatar Client</h3>
         <div className="flex items-center gap-4">
-          {avatarClientPreview ? (
-            <img
-              src={avatarClientPreview}
-              alt="avatar client preview"
-              className="w-16 h-16 rounded-full object-cover border"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center text-xl font-medium">
-              {user?.name?.[0]?.toUpperCase() || "?"}
-            </div>
-          )}
+          <Avatar
+            src={avatarClientPreview}
+            name={user?.name}
+            email={user?.email}
+            size={64} // équivalent à w-16 h-16
+            className="border"
+          />
+
           <input
             type="file"
             accept="image/*"
@@ -151,7 +152,9 @@ export default function ClientSettings({ user, token, headers, setMessage }) {
             savingAvatarClient ? "bg-gray-300" : "bg-black hover:bg-gray-900"
           }`}
         >
-          {savingAvatarClient ? "Enregistrement…" : "Mettre à jour avatar client"}
+          {savingAvatarClient
+            ? "Enregistrement…"
+            : "Mettre à jour avatar client"}
         </button>
       </form>
 

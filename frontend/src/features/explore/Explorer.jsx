@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { getPros, followUser } from "../../api/user.service";
-import SearchBar from "../../components/explorer/SearchBar";
-import FiltersBar from "../../components/explorer/FiltersBar";
-import ProCard from "../../components/explorer/ProCard";
+import SearchBar from "./SearchBar";
+import FiltersBar from "./FiltersBar";
+import ProCard from "./ProCard";
 
 export default function Explorer() {
   const { token, user: currentUser } = useAuth();

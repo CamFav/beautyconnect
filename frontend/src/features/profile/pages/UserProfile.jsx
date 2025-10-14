@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState, useContext } from "react";
-import { AuthContext } from "../../context/AuthContext";
-import ClientProfileView from "../../components/profile/ClientProfileView";
-import ProProfileView from "../../components/profile/ProProfileView";
+import { AuthContext } from "../../../context/AuthContext";
+import ClientProfileView from "../components/ClientProfileView";
+import ProProfileView from "../components/ProProfileView";
 
 export default function UserProfile() {
   const { id } = useParams();

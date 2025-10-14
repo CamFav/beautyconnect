@@ -1,7 +1,7 @@
 import { useContext } from "react";
-import { AuthContext } from "../../context/AuthContext";
-import ClientProfileView from "../../components/profile/ClientProfileView";
-import ProProfileView from "../../components/profile/ProProfileView";
+import { AuthContext } from "../../../context/AuthContext";
+import ClientProfileView from "../components/ClientProfileView";
+import ProProfileView from "../components/ProProfileView";
 
 export default function MyProfile() {
   const { user } = useContext(AuthContext);
