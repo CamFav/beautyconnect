@@ -15,7 +15,6 @@ export default function RegisterPro() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Est-ce une upgrade ?
   const upgrading = useMemo(() => !!user && user.role !== "pro", [user]);
 
   // Si création : récupérer pré-remplissage éventuel (landing)
@@ -45,7 +44,12 @@ export default function RegisterPro() {
 
   const canGoNext = () => {
     if (!upgrading) {
-      if (!account.name || !account.email || !account.password || !account.confirmPassword)
+      if (
+        !account.name ||
+        !account.email ||
+        !account.password ||
+        !account.confirmPassword
+      )
         return false;
       if (account.password !== account.confirmPassword) return false;
     }
@@ -126,6 +130,7 @@ export default function RegisterPro() {
         name: account.name,
         email: account.email,
         password: account.password,
+        role: "pro",
         activeRole: "pro",
         proProfile: proPayload,
       };
@@ -241,8 +246,8 @@ export default function RegisterPro() {
 
               {upgrading && (
                 <div className="mb-4 text-sm text-gray-700 bg-gray-50 border rounded p-3">
-                  Vous êtes connecté en tant que <b>{user?.email}</b>.  
-                  En validant, votre compte sera converti en professionnel.
+                  Vous êtes connecté en tant que <b>{user?.email}</b>. En
+                  validant, votre compte sera converti en professionnel.
                 </div>
               )}
 
@@ -273,9 +278,7 @@ export default function RegisterPro() {
                   />
                 )}
 
-                {step === 4 && (
-                  <Step4Siret siret={siret} setSiret={setSiret} />
-                )}
+                {step === 4 && <Step4Siret siret={siret} setSiret={setSiret} />}
 
                 {step === 5 && (
                   <Step5Location

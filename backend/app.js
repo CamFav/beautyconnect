@@ -1,13 +1,13 @@
-require('dotenv').config();
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const xss = require('xss-clean');
-const helmet = require('helmet');
+const xss = require("xss-clean");
+const helmet = require("helmet");
 
 const app = express();
 
-app.disable('x-powered-by');
+app.disable("x-powered-by");
 
 app.use(
   cors({
@@ -20,7 +20,7 @@ app.use(express.json());
 app.use(xss());
 
 // Configuration de Helmet avec CSP
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = process.env.NODE_ENV !== "production";
 
 app.use(
   helmet({
@@ -29,7 +29,11 @@ app.use(
           directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'", "http://localhost:5173"],
-            connectSrc: ["'self'", "http://localhost:5173", "ws://localhost:5173"],
+            connectSrc: [
+              "'self'",
+              "http://localhost:5173",
+              "ws://localhost:5173",
+            ],
             imgSrc: ["'self'", "data:"],
             styleSrc: ["'self'", "'unsafe-inline'"],
             fontSrc: ["'self'", "data:"],
@@ -48,11 +52,10 @@ app.use(
   })
 );
 
-
-require('./routes/router')(app);
+require("./routes/router")(app);
 
 // Connexion à MongoDB
-const connectDB = require('./config/db');
+const connectDB = require("./config/db");
 if (process.env.NODE_ENV !== "test") {
   connectDB();
 }
@@ -62,7 +65,7 @@ app.get("/", (req, res) => {
   res.json({
     status: "success",
     service: "BeautyConnect API",
-    message: "Connecté à BeautyConnect"
+    message: "Connecté à BeautyConnect",
   });
 });
 
@@ -74,13 +77,13 @@ app.get("/api/health", (req, res) => {
     status: "ok",
     service: "BeautyConnect API",
     database: dbState === 1 ? "connected" : "disconnected",
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 
 // Route temporaire pour corriger les utilisateurs
 app.get("/admin/fix-users", async (req, res) => {
-  const User = require("./models/User"); // adapte si ton chemin est différent
+  const User = require("./models/User");
 
   try {
     const all = await User.find();

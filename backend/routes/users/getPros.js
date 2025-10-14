@@ -5,14 +5,30 @@ const User = require("../../models/User");
 // GET /api/users/getPros
 router.get("/getPros", async (req, res) => {
   try {
-    // Tous les users avec un proProfile défini
+    // Pros si role=pro, OU si un proProfile "réellement rempli"
     const pros = await User.find({
-      proProfile: { $exists: true, $ne: null }
-    }).select("-password");
+      $or: [
+        { role: "pro" },
+        {
+          // filet de sécurité legacy: proProfile non vide
+          $and: [
+            { proProfile: { $exists: true, $ne: null } },
+            {
+              $or: [
+                { "proProfile.businessName": { $ne: "" } },
+                { "proProfile.services.0": { $exists: true } },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+      .select("-password")
+      .lean();
 
-    console.log("=== PROS (avec proProfile) ===", pros.length);
-    pros.forEach(u =>
-      console.log(u.email, "=> activeRole:", u.activeRole)
+    console.log("=== PROS VISIBLES DANS EXPLORER ===", pros.length);
+    pros.forEach((u) =>
+      console.log(u.email, "=> role:", u.role, "| activeRole:", u.activeRole)
     );
 
     res.json(pros);

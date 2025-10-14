@@ -22,6 +22,12 @@ const UserSchema = new mongoose.Schema(
     // Avatar côté pro
     avatarPro: { type: String, default: "" },
 
+    role: {
+      type: String,
+      enum: ["client", "pro"],
+      default: "client",
+    },
+
     // Rôle actif actuel
     activeRole: {
       type: String,
@@ -29,7 +35,7 @@ const UserSchema = new mongoose.Schema(
       default: "client",
     },
 
-    // Infos PRO stockées
+    // Partie dédiée au profil pro
     proProfile: {
       businessName: { type: String, default: "", trim: true },
       siret: { type: String, default: "", trim: true },
@@ -49,18 +55,8 @@ const UserSchema = new mongoose.Schema(
     },
 
     // Système d'abonnements
-    followers: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-    following: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   {
     timestamps: true,

@@ -8,7 +8,10 @@ export const useAuth = () => useContext(AuthContext);
 /** Sanitize helpers */
 const sanitize = (value) => {
   if (typeof value !== "string") return value;
-  return value.trim().replace(/[<>]/g, "").replace(/[\u200B-\u200D\uFEFF]/g, "");
+  return value
+    .trim()
+    .replace(/[<>]/g, "")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "");
 };
 const sanitizeObject = (obj) =>
   Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, sanitize(v)]));
@@ -35,7 +38,9 @@ const normalizeUser = (raw) => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem("token") || null);
+  const [token, setToken] = useState(
+    () => localStorage.getItem("token") || null
+  );
   const fetchGen = useRef(0);
 
   /** Charge /me à chaque token */
@@ -53,7 +58,10 @@ export const AuthProvider = ({ children }) => {
         setUser(normalizeUser(me));
       } catch (err) {
         if (fetchGen.current !== gen) return;
-        console.error("[Auth] Erreur /me :", err?.response?.data || err.message);
+        console.error(
+          "[Auth] Erreur /me :",
+          err?.response?.data || err.message
+        );
         handleLogout();
       }
     })();
@@ -119,6 +127,13 @@ export const AuthProvider = ({ children }) => {
     }));
   };
 
+  const updateUser = (updatedData) => {
+    setUser((prev) => ({
+      ...prev,
+      ...updatedData,
+    }));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -130,6 +145,7 @@ export const AuthProvider = ({ children }) => {
         logout: handleLogout,
         updateRole,
         upgradeUserToPro,
+        updateUser,
       }}
     >
       {children}

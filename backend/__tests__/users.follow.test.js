@@ -1,7 +1,6 @@
-// ✅ Mock identiques à users.getOne.test.js
 jest.mock("../middleware/auth", () => ({
   protect: (req, res, next) => {
-    req.user = { id: "fakeUserId" }; 
+    req.user = { id: "fakeUserId" };
     next();
   },
 }));
@@ -36,8 +35,8 @@ describe("POST /api/users/:id/follow", () => {
     // const targetUser = await User.findById(targetUserId);
     // const currentUser = await User.findById(currentUserId);
     User.findById
-      .mockResolvedValueOnce(fakeTargetUser)     // targetUser
-      .mockResolvedValueOnce(fakeCurrentUser);   // currentUser
+      .mockResolvedValueOnce(fakeTargetUser) // targetUser
+      .mockResolvedValueOnce(fakeCurrentUser); // currentUser
 
     const res = await request(app).post("/api/users/provider123/follow");
 
@@ -109,16 +108,15 @@ describe("POST /api/users/:id/follow", () => {
   });
 
   it("renvoie 500 en cas d'erreur serveur", async () => {
-  // nettoie tout ce qu'il y avait avant
-  User.findById.mockReset();
+    // nettoie tout ce qu'il y avait avant
+    User.findById.mockReset();
 
-  // Le premier appel crash
-  User.findById.mockRejectedValueOnce(new Error("DB error"));
+    // Le premier appel crash
+    User.findById.mockRejectedValueOnce(new Error("DB error"));
 
-  const res = await request(app).post("/api/users/provider123/follow");
+    const res = await request(app).post("/api/users/provider123/follow");
 
-  expect(res.status).toBe(500);
-  expect(res.body.message).toBe("Erreur serveur");
-});
-
+    expect(res.status).toBe(500);
+    expect(res.body.message).toBe("Erreur serveur");
+  });
 });

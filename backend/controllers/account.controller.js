@@ -1,6 +1,5 @@
-const BaseUser = require('../models/User');
-const { generateToken } = require('../utils/jwt');
-
+const BaseUser = require("../models/User");
+const { generateToken } = require("../utils/jwt");
 
 // Met à jour le rôle actif de l'utilisateur et génère un nouveau token
 exports.updateRole = async (req, res) => {
@@ -9,15 +8,15 @@ exports.updateRole = async (req, res) => {
     const { role } = req.body;
 
     // Validation du rôle
-    if (!['pro', 'client'].includes(role)) {
-      return res.status(400).json({ message: 'Rôle invalide' });
+    if (!["pro", "client"].includes(role)) {
+      return res.status(400).json({ message: "Rôle invalide" });
     }
 
     const user = await BaseUser.findById(userId);
-  
+
     // Vérification que l'utilisateur existe
     if (!user) {
-      return res.status(404).json({ message: 'Utilisateur introuvable' });
+      return res.status(404).json({ message: "Utilisateur introuvable" });
     }
 
     user.activeRole = role;
@@ -26,22 +25,22 @@ exports.updateRole = async (req, res) => {
     const token = generateToken({
       id: user._id,
       email: user.email,
-      activeRole: user.activeRole
+      activeRole: user.activeRole,
     });
 
     res.json({
-      message: 'Rôle mis à jour',
+      message: "Rôle mis à jour",
       user: {
         _id: user._id,
         name: user.name,
         email: user.email,
-        activeRole: user.activeRole
+        activeRole: user.activeRole,
       },
-      token
+      token,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Erreur serveur' });
+    res.status(500).json({ message: "Erreur serveur" });
   }
 };
 
@@ -52,7 +51,7 @@ exports.updateProfile = async (req, res) => {
 
     const user = await BaseUser.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'Utilisateur introuvable' });
+      return res.status(404).json({ message: "Utilisateur introuvable" });
     }
 
     if (name !== undefined) user.name = name;
@@ -63,19 +62,19 @@ exports.updateProfile = async (req, res) => {
     await user.save();
 
     res.json({
-      message: 'Profil client mis à jour',
+      message: "Profil client mis à jour",
       user: {
         _id: user._id,
         name: user.name,
         email: user.email,
         phone: user.phone,
         location: user.location,
-        activeRole: user.activeRole
-      }
+        activeRole: user.activeRole,
+      },
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Erreur serveur' });
+    res.status(500).json({ message: "Erreur serveur" });
   }
 };
 
@@ -89,12 +88,12 @@ exports.updateProProfile = async (req, res) => {
       services,
       location,
       siret,
-      experience
+      experience,
     } = req.body;
 
     const user = await BaseUser.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'Utilisateur introuvable' });
+      return res.status(404).json({ message: "Utilisateur introuvable" });
     }
 
     // Initialise si pas encore créé
@@ -105,7 +104,8 @@ exports.updateProProfile = async (req, res) => {
     // Mise à jour des champs pro
     if (businessName !== undefined) user.proProfile.businessName = businessName;
     if (status !== undefined) user.proProfile.status = status;
-    if (Array.isArray(exerciseType)) user.proProfile.exerciseType = exerciseType;
+    if (Array.isArray(exerciseType))
+      user.proProfile.exerciseType = exerciseType;
     if (Array.isArray(services)) user.proProfile.services = services;
     if (location !== undefined) user.proProfile.location = location;
     if (siret !== undefined) user.proProfile.siret = siret;
@@ -113,7 +113,6 @@ exports.updateProProfile = async (req, res) => {
 
     // force le rôle à "pro"
     user.role = "pro";
-    user.activeRole = "pro";
 
     await user.save();
 
@@ -121,24 +120,23 @@ exports.updateProProfile = async (req, res) => {
     const token = generateToken({
       id: user._id,
       email: user.email,
-      activeRole: user.activeRole
+      activeRole: user.activeRole,
     });
 
     res.json({
-      message: 'Profil professionnel mis à jour & rôle activé',
+      message: "Profil professionnel mis à jour & rôle activé",
       user: {
         _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         activeRole: user.activeRole,
-        proProfile: user.proProfile
+        proProfile: user.proProfile,
       },
-      token
+      token,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Erreur serveur' });
+    res.status(500).json({ message: "Erreur serveur" });
   }
 };
-
