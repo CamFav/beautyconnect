@@ -88,7 +88,8 @@ exports.updateProProfile = async (req, res) => {
       exerciseType,
       services,
       location,
-      siret
+      siret,
+      experience
     } = req.body;
 
     const user = await BaseUser.findById(userId);
@@ -96,25 +97,48 @@ exports.updateProProfile = async (req, res) => {
       return res.status(404).json({ message: 'Utilisateur introuvable' });
     }
 
+    // Initialise si pas encore créé
     if (!user.proProfile) {
       user.proProfile = {};
     }
 
+    // Mise à jour des champs pro
     if (businessName !== undefined) user.proProfile.businessName = businessName;
     if (status !== undefined) user.proProfile.status = status;
     if (Array.isArray(exerciseType)) user.proProfile.exerciseType = exerciseType;
     if (Array.isArray(services)) user.proProfile.services = services;
     if (location !== undefined) user.proProfile.location = location;
     if (siret !== undefined) user.proProfile.siret = siret;
+    if (experience !== undefined) user.proProfile.experience = experience;
+
+    // force le rôle à "pro"
+    user.role = "pro";
+    user.activeRole = "pro";
 
     await user.save();
 
+    // renvoie un NOUVEAU token cohérent
+    const token = generateToken({
+      id: user._id,
+      email: user.email,
+      activeRole: user.activeRole
+    });
+
     res.json({
-      message: 'Profil professionnel mis à jour',
-      proProfile: user.proProfile
+      message: 'Profil professionnel mis à jour & rôle activé',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        activeRole: user.activeRole,
+        proProfile: user.proProfile
+      },
+      token
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 };
+

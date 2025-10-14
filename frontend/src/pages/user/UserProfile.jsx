@@ -13,7 +13,7 @@ export default function UserProfile() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // Si l'utilisateur consulte son propre profil
+        // Si l'utilisateur consulte son propre profi
         if (id === loggedUser?._id) {
           setUser(loggedUser);
           return;
@@ -32,7 +32,7 @@ export default function UserProfile() {
     fetchUser();
   }, [id, loggedUser, token]);
 
-   // SCROLL AUTOMATIQUE SUR #offres
+  // SCROLL AUTOMATIQUE SUR #offres
   useEffect(() => {
     if (!user) return;
 
@@ -52,8 +52,7 @@ export default function UserProfile() {
   }
 
   // Détermine si c’est un profil pro
-  const isPro =
-    user.proProfile && Object.keys(user.proProfile).length > 0;
+  const isPro = user.proProfile && Object.keys(user.proProfile).length > 0;
 
   // PROFIL CLIENT
   if (!isPro) {

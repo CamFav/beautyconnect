@@ -8,6 +8,7 @@ export default function UserMenu() {
   const nav = useNavigate();
   const ref = useRef(null);
 
+  // Ferme le menu si clic extérieur
   useEffect(() => {
     const onClick = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
@@ -22,7 +23,6 @@ export default function UserMenu() {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  console.log("[UserMenu] user actuel :", user);
   const initials = (user?.name || user?.email || "?")
     .split(" ")
     .map((w) => w[0])
@@ -30,18 +30,35 @@ export default function UserMenu() {
     .join("")
     .toUpperCase();
 
-  // Bascule + redirection
-const toggleRole = async () => {
+  // Empêche d'activer le mode pro sans profil complet
+  const onRoleCta = async () => {
+  console.log("USER AU CLIC :", user);
+
   try {
+    // L'utilisateur n'a PAS encore de profil pro déclaré
+    if (!user?.proProfile || !user?.proProfile?.siret) {
+      setOpen(false);
+      nav("/upgrade-pro"); // redirection forcée
+      return;
+    }
+
+    // Il a déjà un profil pro > toggle entre client / pro
     const nextRole = user?.activeRole === "pro" ? "client" : "pro";
     await updateRole(nextRole);
     setOpen(false);
     nav("/home");
   } catch (err) {
-    console.error("Erreur toggleRole:", err);
+    console.error("Erreur changement de rôle :", err);
     alert("Impossible de changer de rôle.");
   }
 };
+  // Affichage du libellé 
+  const roleCtaLabel =
+    !user?.proProfile || !user?.proProfile?.siret
+      ? "Activer le mode Pro"
+      : user?.activeRole === "pro"
+      ? "Revenir en client"
+      : "Passer en mode Pro";
 
   return (
     <div className="relative" ref={ref}>
@@ -101,15 +118,14 @@ const toggleRole = async () => {
 
           <div className="my-2 h-px bg-gray-100" />
 
+          {/* CTA mode Pro sécurisé */}
           <button
             type="button"
             role="menuitem"
-            onClick={toggleRole}
+            onClick={onRoleCta}
             className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm"
           >
-            {user?.activeRole === "pro"
-              ? "Revenir en client"
-              : "Activer le mode Pro"}
+            {roleCtaLabel}
           </button>
 
           <button

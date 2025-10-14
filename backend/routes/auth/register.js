@@ -24,9 +24,16 @@ router.post(
       .notEmpty().withMessage('Le mot de passe est requis')
       .isLength({ min: 6 }).withMessage('Le mot de passe doit contenir au moins 6 caractères'),
 
+    // On accepte role OU activeRole
+    body('role')
+      .optional()
+      .isIn(['client', 'pro'])
+      .withMessage("Le rôle doit être 'client' ou 'pro'"),
+
     body('activeRole')
       .optional()
-      .isIn(['client', 'pro']).withMessage("Le rôle doit être 'client' ou 'pro'"),
+      .isIn(['client', 'pro'])
+      .withMessage("Le rôle doit être 'client' ou 'pro'"),
   ],
   async (req, res) => {
     console.log("Requête reçue pour /register :", req.body);
@@ -40,8 +47,9 @@ router.post(
         name,
         email,
         password,
+        role,
         activeRole,
-        proProfile = {}
+        proProfile = {},
       } = req.body;
 
       const existingUser = await User.findOne({ email });
@@ -49,12 +57,16 @@ router.post(
         return res.status(400).json({ message: 'Email déjà utilisé' });
       }
 
+      // Déterminer le vrai rôle
+      const finalRole = role || activeRole || 'client';
+
       const newUser = new User({
         name,
         email,
         password,
-        activeRole: activeRole || 'client',
-        proProfile: activeRole === 'pro' ? proProfile : undefined
+        role: finalRole,
+        activeRole: finalRole,
+        proProfile: finalRole === 'pro' ? proProfile : undefined,
       });
 
       await newUser.save();
@@ -65,6 +77,7 @@ router.post(
           id: newUser._id,
           name: newUser.name,
           email: newUser.email,
+          role: newUser.role,
           activeRole: newUser.activeRole
         }
       });

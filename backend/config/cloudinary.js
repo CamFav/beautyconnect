@@ -9,7 +9,7 @@ cloudinary.config({
 if (!process.env.CLOUDINARY_CLOUD_NAME ||
     !process.env.CLOUDINARY_API_KEY ||
     !process.env.CLOUDINARY_API_SECRET) {
-  console.warn("⚠️ Cloudinary environment variables are missing!");
+  console.warn("Cloudinary environment variables are missing!");
 }
 
 

@@ -5,7 +5,9 @@ const { protect } = require("../../middleware/auth");
 
 // POST /api/users/:id/follow
 router.post("/:id/follow", protect, async (req, res) => {
+    console.log("Route /:id/follow hit");
   try {
+    console.log("Handler follow démarré");
     const targetUserId = req.params.id;
     const currentUserId = req.user.id;
 

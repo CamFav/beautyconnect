@@ -78,4 +78,25 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Route temporaire pour corriger les utilisateurs
+app.get("/admin/fix-users", async (req, res) => {
+  const User = require("./models/User"); // adapte si ton chemin est différent
+
+  try {
+    const all = await User.find();
+    for (const u of all) {
+      // Correction du champ role si manquant
+      if (!u.role && u.activeRole) {
+        u.role = u.activeRole;
+        await u.save();
+        console.log(`ROLE corrigé pour ${u.email} => role=${u.role}`);
+      }
+    }
+    res.json({ message: "Correction terminée" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
 module.exports = app;

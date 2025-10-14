@@ -1,8 +1,9 @@
-import { createContext, useEffect, useRef, useState } from "react";
+import { createContext, useEffect, useRef, useState, useContext } from "react";
 import { register, login, getMe } from "../api/auth.service";
 import { updateRole as apiUpdateRole } from "../api/user.service";
 
 export const AuthContext = createContext();
+export const useAuth = () => useContext(AuthContext);
 
 /** Sanitize helpers */
 const sanitize = (value) => {
@@ -88,7 +89,7 @@ export const AuthProvider = ({ children }) => {
     if (!token) throw new Error("Non connecté");
 
     const sanitizedRole = sanitize(role);
-    const res = await apiUpdateRole(sanitizedRole); // ✅ plus de token ici
+    const res = await apiUpdateRole(sanitizedRole);
 
     console.log("[updateRole] Réponse backend :", res);
 
@@ -108,6 +109,16 @@ export const AuthProvider = ({ children }) => {
     return res.user;
   };
 
+  /** Mise à jour locale après passage en PRO */
+  const upgradeUserToPro = (updatedFields) => {
+    setUser((prev) => ({
+      ...prev,
+      role: "pro",
+      activeRole: "pro",
+      proProfile: updatedFields || prev?.proProfile,
+    }));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -118,6 +129,7 @@ export const AuthProvider = ({ children }) => {
         handleLogout,
         logout: handleLogout,
         updateRole,
+        upgradeUserToPro,
       }}
     >
       {children}

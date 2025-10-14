@@ -7,10 +7,11 @@ import Home from "./pages/home/Home.jsx";
 import Login from "./pages/auth/Login.jsx";
 import Register from "./pages/auth/Register.jsx";
 import Landing from "./pages/home/Landing.jsx";
-import RegisterPro from "./pages/auth/RegisterPro.jsx";
+import RegisterPro from "./pages/auth/RegisterPro/RegisterPro.jsx";
 import Settings from "./pages/user/Settings.jsx";
 import MyProfile from "./pages/user/MyProfile.jsx";
 import UserProfile from "./pages/user/UserProfile.jsx";
+import Explorer from "./pages/explore/Explorer";
 
 
 
@@ -56,6 +57,27 @@ export default function App() {
             </PublicRoute>
           }
         />
+
+
+        <Route
+          path="/upgrade-pro"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <RegisterPro />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+      path="/explore"
+      element={
+        <Layout>
+          <Explorer />
+        </Layout>
+      }
+    />
 
         {/* Routes protégées */}
         <Route

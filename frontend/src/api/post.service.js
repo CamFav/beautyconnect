@@ -31,6 +31,34 @@ export const likePost = async (token, postId) => {
   return res.data;
 };
 
+// Mettre à jour un post (Prestataire)
+export const updatePost = async (token, postId, data) => {
+  const res = await axios.patch(
+    `http://localhost:5000/api/posts/${postId}`,
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data.post;
+};
+
+// Supprimer un post (Prestataire)
+export const deletePost = async (token, postId) => {
+  const res = await axios.delete(
+    `http://localhost:5000/api/posts/${postId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};
+
+
 // Ajouter / Retirer des favoris
 export const favoritePost = async (token, postId) => {
   const res = await axios.post(
@@ -41,4 +69,15 @@ export const favoritePost = async (token, postId) => {
     }
   );
   return res.data;
+};
+
+// Suivre / Ne plus suivre un utilisateur
+export const followUser = async (token, userId) => {
+  const res = await fetch(`http://localhost:5000/api/users/${userId}/follow`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.json();
 };

@@ -11,5 +11,6 @@ const router = express.Router();
 router.patch('/role', protect, updateRole);
 router.patch('/profile', protect, updateProfile);
 router.patch('/pro-profile', protect, updateProProfile);
+router.patch('/upgrade-pro', protect, updateProProfile);
 
 module.exports = router;

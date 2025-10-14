@@ -44,7 +44,7 @@ export default function Navbar() {
         <ul className="flex items-center gap-8 text-sm text-gray-700 overflow-x-visible">
           <li>
             <NavLink
-              to="/"
+              to="/home"
               end
               className={({ isActive }) =>
                 "relative py-3 hover:text-gray-900 " +
@@ -75,13 +75,13 @@ export default function Navbar() {
             </button>
           </li>
           <li>
-            <button
-              className="relative py-3 hover:text-gray-900 hover:after:absolute hover:after:left-0 hover:after:-bottom-[1px] hover:after:h-[2px] hover:after:w-full hover:after:bg-gray-300"
-              type="button"
-            >
-              Explorer
-            </button>
-          </li>
+  <NavLink
+    to="/explore"
+    className="relative py-3 hover:text-gray-900 hover:after:absolute hover:after:left-0 hover:after:-bottom-[1px] hover:after:h-[2px] hover:after:w-full hover:after:bg-gray-300"
+  >
+    Explorer
+  </NavLink>
+</li>
         </ul>
       </nav>
     </header>
