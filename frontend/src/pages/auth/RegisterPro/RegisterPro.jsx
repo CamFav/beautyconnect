@@ -113,7 +113,7 @@ export default function RegisterPro() {
 
     try {
       if (upgrading) {
-        const updatedUser = await upgradeUserToPro(token, proPayload);
+        const updatedUser = await upgradeUserToPro(proPayload);
         updateUser(updatedUser);
         alert("Votre compte est maintenant professionnel.");
         navigate("/home");

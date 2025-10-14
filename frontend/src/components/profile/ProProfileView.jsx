@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
-import { toggleFollow } from "../../api/user.service";
+import { followUser } from "../../api/user.service";
 import PostModal from "../../components/PostModal";
 
 export default function ProProfileView({ user }) {
@@ -29,7 +29,10 @@ export default function ProProfileView({ user }) {
         );
         setPosts(res.data.posts || []);
       } catch (err) {
-        console.error("Erreur lors du chargement des posts du prestataire:", err);
+        console.error(
+          "Erreur lors du chargement des posts du prestataire:",
+          err
+        );
       }
 
       // Vérifier si l'utilisateur courant suit ce prestataire
@@ -44,18 +47,18 @@ export default function ProProfileView({ user }) {
   const visiblePosts = showAll ? posts : posts.slice(0, 3);
 
   const handleUpdatePost = (updated) => {
-  if (updated.deleted) {
-    setPosts((prev) => prev.filter((p) => p._id !== updated._id));
-    setSelectedPost(null);
-  } else {
-    setPosts((prev) =>
-      prev.map((p) => (p._id === updated._id ? { ...p, ...updated } : p))
-    );
-    setSelectedPost((prev) =>
-      prev && prev._id === updated._id ? { ...prev, ...updated } : prev
-    );
-  }
-};
+    if (updated.deleted) {
+      setPosts((prev) => prev.filter((p) => p._id !== updated._id));
+      setSelectedPost(null);
+    } else {
+      setPosts((prev) =>
+        prev.map((p) => (p._id === updated._id ? { ...p, ...updated } : p))
+      );
+      setSelectedPost((prev) =>
+        prev && prev._id === updated._id ? { ...prev, ...updated } : prev
+      );
+    }
+  };
 
   // gestion du follow / unfollow
   const handleFollow = async () => {
@@ -64,7 +67,7 @@ export default function ProProfileView({ user }) {
       return;
     }
     try {
-      const result = await toggleFollow(token, user._id);
+      const result = await followUser(user._id);
       setIsFollowing(result.following);
       setFollowersCount(result.followersCount);
     } catch (err) {
@@ -87,16 +90,16 @@ export default function ProProfileView({ user }) {
             <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center text-2xl font-medium">
               {user.proProfile?.status === "freelance"
                 ? user.name?.[0]?.toUpperCase()
-                : (user.proProfile?.businessName?.[0]?.toUpperCase() ||
-                    user.name?.[0]?.toUpperCase() ||
-                    "?")}
+                : user.proProfile?.businessName?.[0]?.toUpperCase() ||
+                  user.name?.[0]?.toUpperCase() ||
+                  "?"}
             </div>
           )}
           <div>
             <h1 className="text-2xl font-bold text-gray-800">
-            {user.proProfile?.status === "freelance"
+              {user.proProfile?.status === "freelance"
                 ? user.name
-                : (user.proProfile?.businessName || user.name)}
+                : user.proProfile?.businessName || user.name}
             </h1>
             <p className="text-gray-600 text-sm">
               {followersCount} {followersCount > 1 ? "abonnés" : "abonné"}

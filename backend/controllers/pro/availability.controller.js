@@ -1,4 +1,4 @@
-const ProDetails = require("../models/ProDetails");
+const ProDetails = require("../../models/ProDetails");
 
 // UPDATE availability for a pro
 exports.updateAvailability = async (req, res) => {

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { getPros, toggleFollow } from "../../api/user.service";
+import { getPros, followUser } from "../../api/user.service";
 import SearchBar from "../../components/explorer/SearchBar";
 import FiltersBar from "../../components/explorer/FiltersBar";
 import ProCard from "../../components/explorer/ProCard";
@@ -73,7 +73,7 @@ export default function Explorer() {
       if (!token)
         return alert("Vous devez être connecté pour suivre quelqu'un.");
 
-      const result = await toggleFollow(token, proId);
+      const result = await followUser(proId);
 
       setPros((prev) =>
         prev.map((pro) =>

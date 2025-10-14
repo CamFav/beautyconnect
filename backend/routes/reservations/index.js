@@ -4,7 +4,7 @@ const {
   getByClient,
   getByPro,
   updateStatus,
-} = require("../controllers/reservationController");
+} = require("../../controllers/reservation.controller");
 
 const router = express.Router();
 

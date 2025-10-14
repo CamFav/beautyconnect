@@ -1,28 +1,23 @@
-import axios from "axios";
 import http from "./httpClient";
 
 const ACCOUNT_URL = "/account";
+const USERS_URL = "/users";
 
+// Mettre à jour le rôle de l'utilisateur
 export const updateRole = async (role) => {
   const res = await http.patch(`${ACCOUNT_URL}/role`, { role });
-  return res.data; // { message, user, token }
-};
-
-// Mettre à jour le profil client
-export const toggleFollow = async (token, targetUserId) => {
-  const res = await axios.post(
-    `http://localhost:5000/api/users/${targetUserId}/follow`,
-    {},
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
   return res.data;
 };
 
-// Récupérer les prestataires avec filtres optionnels
+// Suivre / ne plus suivre un utilisateur
+export const followUser = async (userId) => {
+  const res = await http.post(`${USERS_URL}/${userId}/follow`);
+  return res.data;
+};
+
+// Récupérer les prestataires avec filtres
 export const getPros = async ({ q = "", service = "" } = {}) => {
-  const res = await axios.get("http://localhost:5000/api/users/getPros", {
+  const res = await http.get(`${USERS_URL}/getPros`, {
     params: { q, service },
   });
   return res.data || [];

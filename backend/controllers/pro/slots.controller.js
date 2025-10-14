@@ -1,5 +1,5 @@
-const Reservation = require("../models/Reservation");
-const ProDetails = require("../models/ProDetails");
+const Reservation = require("../../models/Reservation");
+const ProDetails = require("../../models/ProDetails");
 
 exports.getAvailableSlots = async (req, res) => {
   try {

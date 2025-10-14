@@ -1,12 +1,12 @@
 const express = require("express");
-const { protect } = require("../middleware/auth");
-const { requireRole } = require("../middleware/roles");
-const { getDashboard } = require("../controllers/proController");
+const { protect } = require("../../middleware/auth");
+const { requireRole } = require("../../middleware/roles");
+const { getDashboard } = require("../../controllers/pro/dashboard.controller");
 const {
   updateAvailability,
   getAvailability,
-} = require("../controllers/proAvailability.controller");
-const { getAvailableSlots } = require("../controllers/proSlots.controller");
+} = require("../../controllers/pro/availability.controller");
+const { getAvailableSlots } = require("../../controllers/pro/slots.controller");
 
 const router = express.Router();
 

@@ -1,12 +1,12 @@
 const express = require("express");
-const { protect } = require("../middleware/auth");
+const { protect } = require("../../middleware/auth");
 const {
   updateRole,
   updateProfile,
   updateProProfile,
-} = require("../controllers/account.controller");
+} = require("../../controllers/account.controller");
 
-const User = require("../models/User");
+const User = require("../../models/User");
 
 const router = express.Router();
 
