@@ -4,24 +4,52 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const xss = require("xss-clean");
 const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const morgan = require("morgan");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
-
 app.disable("x-powered-by");
+
+const isDev = process.env.NODE_ENV !== "production";
+
+// ========================================
+// CORS
+// ========================================
+const allowedOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+    origin:
+      allowedOrigins.length > 0
+        ? allowedOrigins
+        : ["http://localhost:5173", "http://127.0.0.1:5173"],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+app.options("*", cors());
 
-app.use(express.json());
-app.use(xss());
+// ========================================
+// Logging HTTP (morgan + fichier local)
+// ========================================
+if (isDev) {
+  app.use(morgan("dev"));
+} else {
+  const logStream = fs.createWriteStream(path.join(__dirname, "access.log"), {
+    flags: "a",
+  });
+  app.use(morgan("combined", { stream: logStream }));
+}
 
-// Configuration de Helmet avec CSP
-const isDev = process.env.NODE_ENV !== "production";
-
+// ========================================
+// Helmet + CSP
+// ========================================
 app.use(
   helmet({
     contentSecurityPolicy: isDev
@@ -33,6 +61,7 @@ app.use(
               "'self'",
               "http://localhost:5173",
               "ws://localhost:5173",
+              "http://localhost:5000",
             ],
             imgSrc: ["'self'", "data:"],
             styleSrc: ["'self'", "'unsafe-inline'"],
@@ -52,27 +81,66 @@ app.use(
   })
 );
 
+// ========================================
+// Rate limiter global et admin renforcé
+// ========================================
+let adminLimiter;
+
+if (process.env.NODE_ENV === "production") {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 min
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: "Trop de requêtes depuis cette IP. Réessayez plus tard.",
+  });
+  app.use("/api/", limiter);
+
+  adminLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1h
+    max: 10,
+    message: "Accès admin trop fréquent. Réessayez plus tard.",
+  });
+
+  console.log("Rate limiter actif (production)");
+} else {
+  adminLimiter = (req, res, next) => next();
+  console.log("Rate limiter désactivé en mode développement");
+}
+
+// ========================================
+// XSS + JSON parsing limité
+// ========================================
+app.use(xss());
+app.use(express.json({ limit: "10kb" }));
+
+// ========================================
+// Routes principales
+// ========================================
 require("./routes/router")(app);
 
-// Connexion à MongoDB
+// ========================================
+// Connexion MongoDB
+// ========================================
 const connectDB = require("./config/db");
 if (process.env.NODE_ENV !== "test") {
   connectDB();
 }
 
-// Route racine
+// ========================================
+// Routes de base
+// ========================================
 app.get("/", (req, res) => {
   res.json({
     status: "success",
     service: "BeautyConnect API",
+    env: process.env.NODE_ENV,
     message: "Connecté à BeautyConnect",
   });
 });
 
-// Route /api/health (état de l'API et MongoDB)
 app.get("/api/health", (req, res) => {
   const dbState = mongoose.connection.readyState;
-
   res.json({
     status: "ok",
     service: "BeautyConnect API",
@@ -81,21 +149,28 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Route temporaire pour corriger les utilisateurs
-app.get("/admin/fix-users", async (req, res) => {
+// ========================================
+// Route admin sécurisée
+// ========================================
+app.get("/admin/fix-users", adminLimiter, async (req, res) => {
+  const providedKey = req.headers["x-admin-key"] || req.query.key;
+
+  if (!providedKey || providedKey !== process.env.ADMIN_KEY) {
+    return res.status(403).json({ message: "Accès refusé : clé invalide" });
+  }
+
   const User = require("./models/User");
 
   try {
     const all = await User.find();
     for (const u of all) {
-      // Correction du champ role si manquant
       if (!u.role && u.activeRole) {
         u.role = u.activeRole;
         await u.save();
         console.log(`ROLE corrigé pour ${u.email} => role=${u.role}`);
       }
     }
-    res.json({ message: "Correction terminée" });
+    res.json({ message: "Correction terminée avec succès" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erreur serveur" });

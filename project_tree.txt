@@ -1,0 +1,20 @@
+
+C:\Users\camil\Desktop\BeautyConnect
+├── .git
+├── .github
+├── .gitignore
+├── .vscode
+├── backend
+├── docker-compose.yml
+├── frontend
+├── node_modules
+├── package-lock.json
+├── package.json
+├── project_tree.txt
+└── README.md
+
+directory: 6 file: 6
+
+
+
+[2K[1G

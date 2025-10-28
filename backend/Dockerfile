@@ -1,12 +1,15 @@
-FROM node:20
+FROM node:20-alpine
 
 WORKDIR /app
 
+# Copie et installation des dépendances
 COPY package*.json ./
-RUN npm install
+RUN npm ci --only=production
 
+# Copie du code
 COPY . .
 
+ENV NODE_ENV=production
 EXPOSE 5000
 
-CMD ["npm", "run", "dev"]
+CMD ["node", "server.js"]

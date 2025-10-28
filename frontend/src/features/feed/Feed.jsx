@@ -1,163 +1,295 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { getPosts, likePost, favoritePost } from "../../api/post.service";
-import { useAuth } from "../../context/AuthContext";
-import Avatar from "../../components/common/Avatar";
+import { useAuth } from "../../context/AuthContextBase";
+import { getPosts, likePost, favoritePost } from "@/api/posts/post.service";
+import FeedFiltersBar from "./components/FeedFiltersBar";
+import FeedSidebar from "./components/FeedSidebar";
+import LocationFilter from "./components/LocationFilter";
+import PostList from "./components/PostList";
+import PostModal from "../../components/feedback/PostModal";
+import AlertMessage from "../../components/feedback/AlertMessage";
+import { toast } from "react-hot-toast";
+import Seo from "@/components/seo/Seo.jsx";
+
+/**
+ * Feed – Flux principal des publications
+ */
 
 export default function Feed() {
   const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [activeCategory, setActiveCategory] = useState("Tous");
+  const [locationFilter, setLocationFilter] = useState("all");
+
   const { user, token } = useAuth();
 
+  const [typedCity, setTypedCity] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [shouldFilter, setShouldFilter] = useState(false);
+
+  const [modalPost, setModalPost] = useState(null);
+  const openModal = (post) => setModalPost(post);
+  const closeModal = () => setModalPost(null);
+
+  const [alert, setAlert] = useState(null);
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
+  const sanitize = (val) =>
+    typeof val === "string" ? val.trim().replace(/[<>]/g, "") : "";
+
+  // === Récupération des posts ===
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const data = await getPosts();
-        setPosts(data.posts || data);
+        let fetchedPosts = Array.isArray(data.posts) ? data.posts : data;
+
+        // Filtre de localisation (ville)
+        if (locationFilter === "city" && shouldFilter && selectedCity) {
+          const citySanitized = sanitize(selectedCity).toLowerCase();
+          fetchedPosts = fetchedPosts.filter(
+            (p) =>
+              sanitize(
+                p.provider?.proProfile?.location?.city || ""
+              ).toLowerCase() === citySanitized
+          );
+        }
+
+        setPosts(fetchedPosts);
       } catch (error) {
         console.error("Erreur récupération posts:", error);
+        setAlert({
+          type: "error",
+          message: "Impossible de charger les publications pour le moment.",
+        });
       }
     };
-    fetchPosts();
-  }, []);
 
+    fetchPosts();
+  }, [locationFilter, shouldFilter, selectedCity]);
+
+  // === Filtrage combiné : catégorie + ville ===
+  useEffect(() => {
+    let result = [...posts];
+    if (activeCategory !== "Tous") {
+      result = result.filter((p) => {
+        const categories =
+          p.provider?.proProfile?.categories?.map((c) =>
+            c.toLowerCase().trim()
+          ) || [];
+        return categories.includes(activeCategory.toLowerCase());
+      });
+    }
+    setFilteredPosts(result);
+  }, [posts, activeCategory]);
+
+  // === Like ===
   const handleLike = async (postId) => {
     if (!token) {
-      alert("Vous devez être connecté pour liker.");
+      toast.error("Vous devez être connecté pour liker un post.", {
+        duration: 4000,
+        style: {
+          background: "#fee2e2",
+          color: "#991b1b",
+          border: "1px solid #fca5a5",
+        },
+      });
       return;
     }
 
     try {
-      const updated = await likePost(token, postId);
+      const updated = await likePost(postId);
       setPosts((prev) =>
         prev.map((p) =>
           p._id === postId
             ? {
                 ...p,
                 likes: updated.liked
-                  ? [...p.likes, user._id]
-                  : p.likes.filter((id) => id !== user._id),
+                  ? [...(p.likes || []), user._id]
+                  : (p.likes || []).filter((id) => id !== user._id),
               }
             : p
         )
       );
     } catch (err) {
       console.error("Erreur like:", err);
+      setAlert({
+        type: "error",
+        message: "Une erreur est survenue lors du like.",
+      });
     }
   };
 
+  // === Favoris ===
   const handleFavorite = async (postId) => {
     if (!token) {
-      alert("Vous devez être connecté pour ajouter en favori.");
+      toast.error("Vous devez être connecté pour ajouter un favori.", {
+        duration: 4000,
+        style: {
+          background: "#fee2e2",
+          color: "#991b1b",
+          border: "1px solid #fca5a5",
+        },
+      });
       return;
     }
 
     try {
-      const updated = await favoritePost(token, postId);
+      const updated = await favoritePost(postId);
       setPosts((prev) =>
         prev.map((p) =>
           p._id === postId
             ? {
                 ...p,
                 favorites: updated.favorited
-                  ? [...p.favorites, user._id]
-                  : p.favorites.filter((id) => id !== user._id),
+                  ? [...(p.favorites || []), user._id]
+                  : (p.favorites || []).filter((id) => id !== user._id),
               }
             : p
         )
       );
     } catch (err) {
       console.error("Erreur favori:", err);
+      setAlert({
+        type: "error",
+        message: "Une erreur est survenue lors de l’ajout en favori.",
+      });
+    }
+  };
+
+  // === Suggestions de villes ===
+  const fetchCitySuggestions = async (query) => {
+    if (!query || query.length < 3) {
+      setCitySuggestions([]);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
+          query
+        )}&type=municipality&limit=5`
+      );
+      const data = await res.json();
+      const suggestions = (data?.features || []).map((item) =>
+        sanitize(item.properties.city)
+      );
+      setCitySuggestions(suggestions);
+    } catch (error) {
+      console.error("Erreur API ville :", error);
+      setAlert({
+        type: "warning",
+        message: "Impossible de charger les suggestions de ville.",
+      });
     }
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <h2 className="text-xl font-semibold mb-2">Derniers posts</h2>
+    <>
+      <Seo
+        title="Fil d’actualités"
+        description="Explorez les publications des professionnels de la beauté et trouvez l’inspiration."
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {posts.map((post) => {
-          const provider = post.provider;
-          const avatar = provider?.avatarPro || provider?.avatarClient;
-          const displayName =
-            provider?.proProfile?.businessName ||
-            provider?.name ||
-            "Prestataire";
-          const profileLink = provider?._id ? `/profile/${provider._id}` : "#";
+      <main
+        id="main-content"
+        role="main"
+        aria-label="Fil d’actualités BeautyConnect"
+        tabIndex={-1}
+        className="relative max-w-6xl mx-auto p-6 flex flex-col md:flex-row gap-6 focus:outline-none"
+      >
+        <h1 className="sr-only">Fil d’actualités BeautyConnect</h1>
 
-          const isLiked = user && post.likes.includes(user._id);
-          const isFavorited = user && post.favorites?.includes(user._id);
+        {/* Message global d’erreur (visuel + lecteur d’écran) */}
+        {alert && (
+          <div
+            className="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-lg"
+            role="alert"
+            aria-live="assertive"
+          >
+            <AlertMessage type={alert.type} message={alert.message} />
+          </div>
+        )}
 
-          return (
-            <div
-              key={post._id}
-              className="bg-white rounded-lg shadow-md overflow-hidden"
-            >
-              <img
-                src={post.mediaUrl}
-                alt="Post"
-                className="w-full aspect-square object-cover"
-              />
+        <section
+          aria-labelledby="filters-title"
+          className="flex-1 flex flex-col min-h-0 overflow-hidden"
+        >
+          <h2 id="filters-title" className="sr-only">
+            Filtres de recherche
+          </h2>
 
-              <div className="p-3 space-y-2">
-                {provider ? (
-                  <Link
-                    to={profileLink}
-                    className="flex items-center space-x-2 cursor-pointer"
-                  >
-                    <Avatar
-                      src={avatar}
-                      alt={displayName}
-                      size={40}
-                      fallback={displayName[0]?.toUpperCase() || "?"}
-                    />
-                    <span className="font-medium">{displayName}</span>
-                  </Link>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
-                    <span className="font-medium text-gray-500">
-                      Utilisateur inconnu
-                    </span>
-                  </div>
-                )}
+          <LocationFilter
+            locationFilter={locationFilter}
+            setLocationFilter={setLocationFilter}
+            typedCity={typedCity}
+            setTypedCity={setTypedCity}
+            selectedCity={selectedCity}
+            setSelectedCity={setSelectedCity}
+            citySuggestions={citySuggestions}
+            setCitySuggestions={setCitySuggestions}
+            fetchCitySuggestions={fetchCitySuggestions}
+            setShouldFilter={setShouldFilter}
+          />
 
-                <p className="text-sm text-gray-700">{post.description}</p>
+          <FeedFiltersBar
+            active={activeCategory}
+            onChange={setActiveCategory}
+          />
 
-                {/* Like + Favori */}
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => handleLike(post._id)}>
-                      {isLiked ? "❤️" : "🤍"}
-                    </button>
-                    <span>{post.likes.length}</span>
-                  </div>
+          <section
+            aria-labelledby="posts-title"
+            className="flex-1 overflow-auto no-scrollbar"
+          >
+            <h2 id="posts-title" className="sr-only">
+              Liste des publications
+            </h2>
+            <PostList
+              posts={filteredPosts}
+              user={user}
+              handleLike={handleLike}
+              handleFavorite={handleFavorite}
+              handleImageClick={openModal}
+            />
+          </section>
+        </section>
 
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => handleFavorite(post._id)}>
-                      {isFavorited ? "★" : "☆"}
-                    </button>
-                    <span>{post.favorites?.length || 0}</span>
-                  </div>
-                </div>
+        {/* Sidebar droite */}
+        <aside
+          className="hidden md:block w-80 self-start"
+          aria-labelledby="sidebar-title"
+        >
+          <h2 id="sidebar-title" className="sr-only">
+            Suggestions et statistiques du flux
+          </h2>
+          <FeedSidebar
+            key={activeCategory}
+            selectedCity={selectedCity}
+            posts={filteredPosts}
+            cityActive={locationFilter === "city" && shouldFilter}
+          />
+        </aside>
 
-                <div className="flex gap-2 mt-2">
-                  <button className="flex-1 bg-gray-200 text-gray-800 text-sm py-2 rounded">
-                    Contacter
-                  </button>
-                  {provider?._id && (
-                    <Link
-                      to={`/profile/${provider._id}#offres`}
-                      className="flex-1 bg-blue-600 text-white text-sm py-2 rounded text-center"
-                    >
-                      Réserver
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+        {/* Modal de publication */}
+        {modalPost && (
+          <PostModal
+            post={modalPost}
+            isOpen={!!modalPost}
+            onClose={closeModal}
+            onUpdate={(updatedPost) => {
+              if (!updatedPost) return;
+              setPosts((prev) =>
+                prev.map((p) => (p._id === updatedPost._id ? updatedPost : p))
+              );
+            }}
+          />
+        )}
+      </main>
+    </>
   );
 }

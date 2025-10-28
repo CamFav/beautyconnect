@@ -1,14 +1,25 @@
 const ProDetails = require("../../models/ProDetails");
 
-// UPDATE availability for a pro
+// UPDATE availability
 exports.updateAvailability = async (req, res) => {
   try {
-    const { proId } = req.params;
-    const { availability } = req.body;
+    const proId = req.user.id;
+    const availability = req.body;
 
     if (!availability || !Array.isArray(availability)) {
       return res.status(400).json({
-        message: "Format invalide : 'availability' doit être un tableau",
+        message: "Format invalide : le corps doit être un tableau",
+      });
+    }
+
+    // Validation simple : chaque élément doit avoir day + slots
+    const valid = availability.every(
+      (item) => typeof item.day === "string" && Array.isArray(item.slots)
+    );
+    if (!valid) {
+      return res.status(400).json({
+        message:
+          "Chaque disponibilité doit contenir un day (string) et un tableau slots",
       });
     }
 
@@ -28,22 +39,17 @@ exports.updateAvailability = async (req, res) => {
   }
 };
 
-// GET - Récupérer les disponibilités d'un pro
+// GET availability
+// GET availability
 exports.getAvailability = async (req, res) => {
   try {
-    const { proId } = req.params;
-
+    const proId = req.user.id;
     const data = await ProDetails.findOne({ proId });
-    if (!data) {
-      return res.json({ availability: [] }); // Aucun planning encore défini
-    }
 
-    return res.json({
-      proId,
-      availability: data.availability,
-    });
+    // renvoie juste le tableau pour que res.data soit utilisable directement
+    return res.json(data?.availability || []);
   } catch (err) {
     console.error("Erreur getAvailability:", err);
-    return res.status(500).json({ error: "Erreur serveur" });
+    return res.status(500).json({ message: "Erreur serveur" });
   }
 };

@@ -1,15 +1,17 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext";
-import Avatar from "../common/Avatar";
+import { AuthContext } from "../../context/AuthContextBase";
+import Avatar from "../ui/Avatar";
 
 export default function UserMenu() {
   const { user, logout, updateRole } = useContext(AuthContext);
   const [open, setOpen] = useState(false);
+  const [openedWithKeyboard, setOpenedWithKeyboard] = useState(false);
   const nav = useNavigate();
   const ref = useRef(null);
+  const firstItemRef = useRef(null);
 
-  // Ferme si clic extérieur
+  // Ferme le menu quand on clique à l’extérieur
   useEffect(() => {
     const onClick = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
@@ -18,14 +20,23 @@ export default function UserMenu() {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  // Ferme avec Escape
+  // Ferme le menu avec la touche Échap
   useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  // Changement de rôle sécurisé
+  // Focus sur le premier item seulement si ouvert au clavier
+  useEffect(() => {
+    if (open && openedWithKeyboard && firstItemRef.current) {
+      firstItemRef.current.focus();
+      setOpenedWithKeyboard(false); // réinitialiser
+    }
+  }, [open, openedWithKeyboard]);
+
   const onRoleCta = async () => {
     try {
       if (!user?.proProfile || !user?.proProfile?.siret) {
@@ -50,87 +61,160 @@ export default function UserMenu() {
       ? "Revenir en client"
       : "Passer en mode Pro";
 
+  const baseAvatar =
+    user?.activeRole === "pro" ? user?.avatarPro : user?.avatarClient;
+
+  const cacheBust = user?.updatedAt
+    ? `?v=${new Date(user.updatedAt).getTime()}`
+    : `?t=${Date.now()}`;
+
+  const avatarUrl = baseAvatar ? `${baseAvatar}${cacheBust}` : null;
+
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative flex items-center" ref={ref}>
+      {/* === Bouton principal === */}
       <button
         type="button"
+        id="user-menu-button"
         aria-haspopup="menu"
         aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        title="Mon profil"
-        className="w-10 h-10 inline-flex items-center justify-center rounded-full border border-gray-900"
+        aria-controls="user-menu-dropdown"
+        onClick={(e) => {
+          // détecte si le menu a été ouvert au clavier
+          const fromKeyboard = e.detail === 0;
+          setOpenedWithKeyboard(fromKeyboard);
+          setOpen((v) => !v);
+        }}
+        title={user ? "Mon profil" : "Menu utilisateur"}
+        className="flex items-center gap-2 px-2 py-1.5 rounded-full hover:bg-gray-100 border border-gray-200 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
       >
         <Avatar
           name={user?.name}
           email={user?.email}
-          src={user?.avatarPro || user?.avatarClient}
-          size={36}
+          src={avatarUrl}
+          size={34}
+          className="border-gray-300"
         />
+        <svg
+          className={`w-4 h-4 text-gray-500 transition-transform duration-150 ${
+            open ? "rotate-180" : "rotate-0"
+          }`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
       </button>
 
+      {/* === Menu déroulant === */}
       {open && (
         <div
+          id="user-menu-dropdown"
           role="menu"
-          className="absolute right-0 mt-2 w-64 bg-white border border-gray-100 rounded-xl shadow-lg p-2 z-50"
+          aria-labelledby="user-menu-button"
+          className="absolute right-0 top-full mt-2 w-64 bg-white/95 backdrop-blur-md border border-gray-200 rounded-xl shadow-xl p-2 z-50 origin-top-right animate-fade-in"
         >
-          <div className="px-3 py-2 border-b border-gray-100 mb-2">
-            <div className="font-semibold text-sm">
-              {user?.name || "Utilisateur"}
-            </div>
-            <div className="text-xs text-gray-500 truncate">{user?.email}</div>
-            {user?.activeRole && (
-              <div className="mt-1 text-[11px] inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-gray-700">
-                Rôle : <strong>{user.activeRole}</strong>
+          {!user ? (
+            <>
+              <div
+                className="px-3 py-2 text-sm text-gray-600 border-b border-gray-100"
+                role="none"
+              >
+                Bienvenue ! Connectez-vous pour continuer.
               </div>
-            )}
-          </div>
+              <button
+                ref={firstItemRef}
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  nav("/login");
+                }}
+                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+              >
+                Se connecter
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  nav("/register");
+                }}
+                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+              >
+                S'inscrire
+              </button>
+            </>
+          ) : (
+            <>
+              <div
+                className="px-3 py-2 border-b border-gray-100 mb-2"
+                role="none"
+              >
+                <div className="font-semibold text-sm">{user?.name}</div>
+                <div className="text-xs text-gray-500 truncate">
+                  {user?.email}
+                </div>
+                {user?.activeRole && (
+                  <div className="mt-1 text-[11px] inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-gray-700">
+                    Rôle : <strong>{user.activeRole}</strong>
+                  </div>
+                )}
+              </div>
 
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => {
-              setOpen(false);
-              nav("/profile");
-            }}
-            className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm"
-          >
-            Mon profil
-          </button>
+              <button
+                ref={firstItemRef}
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  nav("/profile");
+                }}
+                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+              >
+                Mon profil
+              </button>
 
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => {
-              setOpen(false);
-              nav("/settings");
-            }}
-            className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm"
-          >
-            Paramètres
-          </button>
+              <button
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  nav("/settings");
+                }}
+                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+              >
+                Paramètres
+              </button>
 
-          <div className="my-2 h-px bg-gray-100" />
+              <div className="my-2 h-px bg-gray-100" role="none" />
 
-          <button
-            type="button"
-            role="menuitem"
-            onClick={onRoleCta}
-            className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm"
-          >
-            {roleCtaLabel}
-          </button>
+              <button
+                role="menuitem"
+                onClick={onRoleCta}
+                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+              >
+                {roleCtaLabel}
+              </button>
 
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => {
-              setOpen(false);
-              logout();
-            }}
-            className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm text-red-600"
-          >
-            Se déconnecter
-          </button>
+              <button
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  logout();
+                }}
+                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 text-sm text-red-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              >
+                Se déconnecter
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

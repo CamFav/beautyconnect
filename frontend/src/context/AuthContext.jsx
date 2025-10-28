@@ -1,61 +1,51 @@
-import { createContext, useEffect, useRef, useState, useContext } from "react";
-import { register, login, getMe } from "../api/auth.service";
-import { updateRole as apiUpdateRole } from "../api/user.service";
+import { useEffect, useRef, useState } from "react";
+import { AuthContext } from "./AuthContextBase";
+import { register, login, getMe } from "../api/auth/auth.service";
+import { updateRole as apiUpdateRole } from "../api/users/user.service";
+import { sanitizeObject, normalizeUser, isTokenExpired } from "./authUtils";
 
-export const AuthContext = createContext();
-export const useAuth = () => useContext(AuthContext);
+const AuthProvider = ({ children }) => {
+  const [user, setUserState] = useState(() => {
+    const saved = localStorage.getItem("user");
+    return saved ? JSON.parse(saved) : null;
+  });
 
-/** Sanitize helpers */
-const sanitize = (value) => {
-  if (typeof value !== "string") return value;
-  return value
-    .trim()
-    .replace(/[<>]/g, "")
-    .replace(/[\u200B-\u200D\uFEFF]/g, "");
-};
-const sanitizeObject = (obj) =>
-  Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, sanitize(v)]));
-
-/** Normalise l'objet user venant de l'API */
-const normalizeUser = (raw) => {
-  if (!raw) return null;
-  const u = { ...raw };
-  if (!u.activeRole) u.activeRole = u.role ?? "client";
-
-  if (u.activeRole === "pro" && !u.proProfile) {
-    u.proProfile = {
-      businessName: "",
-      status: "freelance",
-      exerciseType: [],
-      experience: "<1 an",
-      location: "",
-      services: [],
-      siret: "",
-    };
-  }
-  return u;
-};
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
   const [token, setToken] = useState(
     () => localStorage.getItem("token") || null
   );
+  const [loading, setLoading] = useState(true);
   const fetchGen = useRef(0);
 
-  /** Charge /me à chaque token */
+  const setUser = (value) => {
+    if (!value) {
+      localStorage.removeItem("user");
+      setUserState(null);
+    } else {
+      const normalized = normalizeUser(value);
+      localStorage.setItem("user", JSON.stringify(normalized));
+      setUserState(normalized);
+    }
+  };
+
   useEffect(() => {
-    if (!token) {
-      setUser(null);
+    if (token && isTokenExpired(token)) {
+      handleLogout();
+      setLoading(false);
       return;
     }
-    const gen = ++fetchGen.current;
 
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
+    const gen = ++fetchGen.current;
     (async () => {
       try {
         const me = await getMe();
         if (fetchGen.current !== gen) return;
-        setUser(normalizeUser(me));
+        setUser(me);
       } catch (err) {
         if (fetchGen.current !== gen) return;
         console.error(
@@ -63,59 +53,43 @@ export const AuthProvider = ({ children }) => {
           err?.response?.data || err.message
         );
         handleLogout();
+      } finally {
+        setLoading(false);
       }
     })();
   }, [token]);
 
-  /** Inscription */
-  const handleRegister = async (formData) => {
-    const data = await register(sanitizeObject(formData));
-    return data;
-  };
+  const handleRegister = async (formData) => register(sanitizeObject(formData));
 
-  /** Connexion */
   const handleLogin = async (formData) => {
     const data = await login(sanitizeObject(formData));
-    if (!data?.token) throw new Error("Aucun token reçu");
-
+    if (!data?.token) throw new Error("Impossible de récupérer le token");
     localStorage.setItem("token", data.token);
     setToken(data.token);
-    setUser(normalizeUser(data.user));
+    setUser(data.user);
   };
 
-  /** Déconnexion */
   const handleLogout = () => {
     localStorage.removeItem("token");
-    setUser(null);
+    localStorage.removeItem("user");
+    setUserState(null);
     setToken(null);
   };
 
-  /** Mise à jour du rôle */
   const updateRole = async (role) => {
     if (!token) throw new Error("Non connecté");
-
-    const sanitizedRole = sanitize(role);
-    const res = await apiUpdateRole(sanitizedRole);
-
-    console.log("[updateRole] Réponse backend :", res);
-
-    // Mise à jour du token si renvoyé
+    const res = await apiUpdateRole(role);
     if (res.token) {
       localStorage.setItem("token", res.token);
       setToken(res.token);
     }
-
-    // fusion des données
-    setUser((prev) => ({
-      ...prev,
+    setUser({
       ...res.user,
-      activeRole: sanitizedRole,
-    }));
-
+      activeRole: res?.user?.activeRole ?? role,
+    });
     return res.user;
   };
 
-  /** Mise à jour locale après passage en PRO */
   const upgradeUserToPro = (updatedFields) => {
     setUser((prev) => ({
       ...prev,
@@ -132,11 +106,33 @@ export const AuthProvider = ({ children }) => {
     }));
   };
 
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      console.warn("[Auth] Session expirée, déconnexion forcée.");
+      handleLogout();
+    };
+    window.addEventListener("sessionExpired", handleSessionExpired);
+    return () =>
+      window.removeEventListener("sessionExpired", handleSessionExpired);
+  }, []);
+
+  // --- Écouteur global pour logout manuel ---
+  useEffect(() => {
+    const handleExternalLogout = () => {
+      console.info("[Auth] Déconnexion externe (suppression du compte).");
+      handleLogout();
+    };
+
+    window.addEventListener("logout", handleExternalLogout);
+    return () => window.removeEventListener("logout", handleExternalLogout);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
         user,
         token,
+        loading,
         handleRegister,
         handleLogin,
         handleLogout,
@@ -144,9 +140,12 @@ export const AuthProvider = ({ children }) => {
         updateRole,
         upgradeUserToPro,
         updateUser,
+        setUser,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
+
+export default AuthProvider;

@@ -1,19 +1,33 @@
+version: "3.9"
+
 services:
+  # ============================
+  # FRONTEND (mode développement)
+  # ============================
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
-      - "5173:5173"   # Port docker 5173 mappé au port 5173 local
+      - "5173:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     command: npm run dev -- --host
     depends_on:
       - backend
+    environment:
+      - VITE_API_URL=http://localhost:5000/api
     networks:
       - beautyconnect_net
 
+  # ============================
+  # BACKEND (Node.js / Express)
+  # ============================
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
     volumes:
@@ -22,6 +36,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
+      - NODE_ENV=development
       - MONGO_URL=mongodb://mongo:27017/beautyconnect
     command: npm run dev
     depends_on:
@@ -29,18 +44,73 @@ services:
     networks:
       - beautyconnect_net
 
-
+  # ============================
+  # MONGO DATABASE
+  # ============================
   mongo:
     image: mongo:6
+    restart: always
     ports:
       - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=beautyconnect
     volumes:
       - mongo_data:/data/db
+      - mongo_backup:/data/backup
     networks:
       - beautyconnect_net
 
+  # ============================
+  # BACKUP AUTOMATIQUE MONGO
+  # ============================
+  mongo-backup:
+    image: alpine:3.19
+    container_name: mongo_backup
+    restart: always
+    volumes:
+      - ./backup:/backup
+      - mongo_backup:/data/backup
+    depends_on:
+      - mongo
+    networks:
+      - beautyconnect_net
+    command: >
+      sh -c "apk add --no-cache mongodb-tools &&
+             echo '0 2 * * * /backup/backup.sh >> /var/log/cron.log 2>&1' > /etc/crontabs/root &&
+             crond -f -d 8"
+
+  # ============================
+  # BACKEND (mode production)
+  # ============================
+  backend_prod:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=production
+      - MONGO_URL=mongodb://mongo:27017/beautyconnect
+    command: node server.js
+    depends_on:
+      - mongo
+    networks:
+      - beautyconnect_net
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+# ============================
+# PERSISTENCE & NETWORK
+# ============================
 volumes:
   mongo_data:
+  mongo_backup:
 
 networks:
   beautyconnect_net:
+    driver: bridge

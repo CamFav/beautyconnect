@@ -1,5 +1,22 @@
 const mongoose = require("mongoose");
 
+const SlotSchema = new mongoose.Schema(
+  {
+    start: { type: String, required: true },
+    end: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const AvailabilitySchema = new mongoose.Schema(
+  {
+    day: { type: String, required: true },
+    enabled: { type: Boolean, default: false },
+    slots: { type: [SlotSchema], default: [] }, // [{ start, end }]
+  },
+  { _id: false }
+);
+
 const ProDetailsSchema = new mongoose.Schema(
   {
     proId: {
@@ -8,14 +25,16 @@ const ProDetailsSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    services: [
+      {
+        name: { type: String, required: true },
+        price: { type: Number, required: true },
+        duration: { type: Number, required: true },
+        description: { type: String },
+      },
+    ],
     availability: {
-      type: [
-        {
-          dayOfWeek: { type: String, required: true }, // ex: "monday"
-          start: { type: String, required: true }, // ex: "09:00"
-          end: { type: String, required: true }, // ex: "17:00"
-        },
-      ],
+      type: [AvailabilitySchema],
       default: [],
     },
   },

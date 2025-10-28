@@ -1,0 +1,17 @@
+
+C:\Users\camil\Desktop\BeautyConnect
+├── arbo.txt
+├── backend
+├── docker-compose.yml
+├── frontend
+├── node_modules
+├── package-lock.json
+├── package.json
+├── project_tree.txt
+└── README.md
+
+directory: 3 file: 6
+
+
+
+[2K[1G

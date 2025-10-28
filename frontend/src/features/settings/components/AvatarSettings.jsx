@@ -1,11 +1,16 @@
 import { useContext, useState } from "react";
-import { AuthContext } from "../../context/AuthContext";
-import { updateAvatar } from "../../api/user.service";
+import { AuthContext } from "../../../context/AuthContextBase";
+import { updateAvatar } from "../../../api/user.service";
 
 export default function AvatarSettings() {
   const { user, token, setUser } = useContext(AuthContext);
+
+  // Utilisation correcte de l'avatar en fonction du rôle
+  const initialAvatar =
+    user?.activeRole === "pro" ? user.avatarPro : user.avatarClient;
+
   const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(user?.avatar || "");
+  const [preview, setPreview] = useState(initialAvatar || "");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -27,12 +32,15 @@ export default function AvatarSettings() {
     setMessage(null);
 
     try {
+      // Appel API
       const data = await updateAvatar(token, file);
 
-      // Met à jour l'utilisateur
+      // Mise à jour locale selon le rôle
       setUser((prev) => ({
         ...prev,
-        avatar: data.avatarUrl,
+        ...(prev.activeRole === "pro"
+          ? { avatarPro: data.avatarUrl }
+          : { avatarClient: data.avatarUrl }),
       }));
 
       setMessage({ type: "success", text: "Avatar mis à jour avec succès" });
@@ -49,6 +57,7 @@ export default function AvatarSettings() {
 
   return (
     <div className="flex flex-col items-start space-y-3">
+      {/* Titre */}
       <h2 className="text-lg font-semibold">Avatar</h2>
 
       {/* Aperçu */}
@@ -69,6 +78,7 @@ export default function AvatarSettings() {
       {/* Input fichier */}
       <input type="file" accept="image/*" onChange={handleFileChange} />
 
+      {/* Bouton action */}
       <button
         onClick={handleUpload}
         disabled={loading}
@@ -79,6 +89,7 @@ export default function AvatarSettings() {
         {loading ? "Envoi..." : "Mettre à jour l'avatar"}
       </button>
 
+      {/* Message de feedback */}
       {message && (
         <p
           className={`text-sm ${

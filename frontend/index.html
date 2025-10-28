@@ -1,13 +1,105 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+
+    <!-- ========== SEO de base ========== -->
+    <title>
+      BeautyConnect – Trouvez le professionnel beauté qui vous correspond
+    </title>
+    <meta
+      name="description"
+      content="BeautyConnect vous permet de découvrir, contacter et réserver facilement les meilleurs professionnels de la beauté autour de vous."
+    />
+    <meta
+      name="keywords"
+      content="beauté, salon, coiffeur, maquilleur, esthéticienne, réservation en ligne, beauté Toulouse, professionnels beauté"
+    />
+    <meta name="author" content="BeautyConnect" />
+
+    <!-- ========== Favicon ========== -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192.png" />
+
+    <!-- ========== Open Graph (réseaux sociaux) ========== -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="BeautyConnect – Réservez vos prestations beauté"
+    />
+    <meta
+      property="og:description"
+      content="Trouvez et réservez les meilleurs professionnels beauté autour de vous sur BeautyConnect."
+    />
+    <meta property="og:image" content="/vite.svg" />
+    <meta property="og:url" content="https://beautyconnect.fr" />
+    <meta property="og:locale" content="fr_FR" />
+
+    <!-- ========== Twitter Card ========== -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="BeautyConnect" />
+    <meta
+      name="twitter:description"
+      content="Trouvez et réservez un professionnel beauté en quelques clics."
+    />
+    <meta name="twitter:image" content="/vite.svg" />
+
+    <!-- ========== Canonical + robots ========== -->
+    <link rel="canonical" href="https://beautyconnect.fr/" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+
+    <!-- ========== Données structurées (Schema.org) ========== -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "BeautyConnect",
+        "url": "https://beautyconnect.fr",
+        "description": "Plateforme de réservation de prestations beauté et de mise en relation avec des professionnels.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://beautyconnect.fr/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+
+    <!-- ========== Accessibilité & UX ========== -->
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
+    <!-- ========== Progressive Web App ========== -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- ========== Performance Optimisation ========== -->
+    <!-- Préconnexion pour ressources critiques -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+    <!-- Préchargement -->
+    <link rel="modulepreload" href="/src/main.jsx" />
+    <link rel="modulepreload" href="/src/features/home/pages/Landing.jsx" />
   </head>
-  <body>
+
+  <body class="bg-gray-50 text-gray-900 antialiased leading-relaxed">
+    <!-- Conteneur principal React -->
     <div id="root"></div>
+
+    <!-- Message si JavaScript est désactivé -->
+    <noscript>
+      <p style="text-align: center; padding: 1rem">
+        Pour utiliser BeautyConnect, veuillez activer JavaScript dans votre
+        navigateur.
+      </p>
+    </noscript>
+
+    <!-- Entrée principale React -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

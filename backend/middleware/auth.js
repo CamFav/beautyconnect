@@ -1,25 +1,52 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
-// Middleware protection des routes
+/**
+ * Middleware d'authentification JWT
+ * Vérifie la validité du token et injecte les infos utilisateur dans req.user
+ */
 exports.protect = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Token manquant ou mal formé' });
-  }
-
-  const token = authHeader.split(' ')[1];
   try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        message: "Authentification requise ou token manquant.",
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = { 
-      id: decoded.sub, 
-      email: decoded.email,
-      activeRole: decoded.activeRole
+    // Vérification expiration manuelle
+    if (decoded.exp && Date.now() >= decoded.exp * 1000) {
+      return res.status(401).json({ message: "Token expiré." });
+    }
+
+    const userId = decoded.sub || decoded.id;
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ message: "Token invalide: identifiant manquant." });
+    }
+
+    req.user = {
+      id: userId,
+      email: decoded.email || null,
+      role: decoded.activeRole || decoded.role || null,
     };
 
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Token invalide' });
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Erreur middleware protect:", err);
+    }
+
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Token expiré." });
+    }
+
+    return res.status(401).json({
+      message: "Authentification requise ou token invalide.",
+    });
   }
 };

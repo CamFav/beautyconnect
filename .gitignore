@@ -8,16 +8,29 @@ yarn-error.log*
 logs/
 *.log
 
+# Scripts
+scripts/seed/index.js
+
 # Docker volumes
 mongo_data/
 
 # Environnements
 .env
 .env.local
+.env.test
 
 dist/login.json
 role.json
 
 archive/
+
+# --- Backups ---
+/backup/
+
+# --- Frontend scripts et tests ---
+/frontend/scripts/
+/frontend/src/__mocks__/
+/frontend/src/__tests__/
+
 
 
