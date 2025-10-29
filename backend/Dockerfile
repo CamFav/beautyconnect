@@ -36,7 +36,6 @@ COPY --from=build /app/app.js ./app.js
 COPY --from=build /app/config ./config
 COPY --from=build /app/models ./models
 COPY --from=build /app/routes ./routes
-COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/utils ./utils
 COPY --from=build /app/package*.json ./
 
