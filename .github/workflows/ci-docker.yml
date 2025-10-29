@@ -28,9 +28,11 @@ jobs:
             echo "Refus d'utiliser la base de prod dans les tests !" && exit 1
           fi
 
-      - name: Build containers
-        run: docker compose build
+      # Build des conteneurs avec les bons arguments pour Jest
+      - name: Build containers with test environment
+        run: docker compose build --build-arg NODE_ENV=test
 
+      # Lancement Mongo + backend (test)
       - name: Start backend & mongo
         env:
           NODE_ENV: test
@@ -38,13 +40,14 @@ jobs:
           MONGO_URL: mongodb://mongo:27017/beautyconnect_test
         run: docker compose up -d mongo backend
 
+      # Exécution des tests Jest via le conteneur
       - name: Run Jest tests in backend container
-        env:
-          NODE_ENV: test
-          JWT_SECRET: testsecret
-          MONGO_URL: mongodb://mongo:27017/beautyconnect_test
         run: |
-          docker compose run --rm -e NODE_ENV=test -e JWT_SECRET=testsecret backend sh -c "cd /app && npm test"
+          docker compose run --rm \
+            -e NODE_ENV=test \
+            -e JWT_SECRET=testsecret \
+            -e MONGO_URL=mongodb://mongo:27017/beautyconnect_test \
+            backend sh -c "npm test -- --runInBand --coverage"
 
       - name: Stop containers
         if: always()
