@@ -11,9 +11,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ------------------------------
+      # Checkout du dépôt
+      # ------------------------------
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
+      # ------------------------------
+      # Cache npm pour accélérer npm ci
+      # ------------------------------
+      - name: Cache npm
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+
+      # ------------------------------
+      # Cache Docker layers (build backend)
+      # ------------------------------
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: docker-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            docker-${{ runner.os }}-
+
+      # ------------------------------
+      # Génération du .env test
+      # ------------------------------
       - name: Create backend .env file
         run: |
           echo "NODE_ENV=test" >> backend/.env
@@ -28,11 +56,16 @@ jobs:
             echo "Refus d'utiliser la base de prod dans les tests !" && exit 1
           fi
 
-      # Build des conteneurs avec les bons arguments pour Jest
+      # ------------------------------
+      # Build du backend avec Docker cache + Jest
+      # ------------------------------
       - name: Build containers with test environment
-        run: docker compose build --build-arg NODE_ENV=test
+        run: |
+          docker compose build --build-arg NODE_ENV=test
 
-      # Lancement Mongo + backend (test)
+      # ------------------------------
+      # Lancement de Mongo + backend
+      # ------------------------------
       - name: Start backend & mongo
         env:
           NODE_ENV: test
@@ -40,7 +73,9 @@ jobs:
           MONGO_URL: mongodb://mongo:27017/beautyconnect_test
         run: docker compose up -d mongo backend
 
-      # Exécution des tests Jest via le conteneur
+      # ------------------------------
+      # Exécution des tests Jest
+      # ------------------------------
       - name: Run Jest tests in backend container
         run: |
           docker compose run --rm \
@@ -49,6 +84,14 @@ jobs:
             -e MONGO_URL=mongodb://mongo:27017/beautyconnect_test \
             backend sh -c "npm test -- --runInBand --coverage"
 
+      # ------------------------------
+      # Arrêt et nettoyage
+      # ------------------------------
       - name: Stop containers
         if: always()
-        run: docker compose down
+        run: docker compose down --volumes --remove-orphans
+
+      - name: Cleanup Docker cache
+        if: always()
+        run: |
+          docker system prune -af
