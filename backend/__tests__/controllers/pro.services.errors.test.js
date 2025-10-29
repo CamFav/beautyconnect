@@ -34,7 +34,8 @@ describe('Controller - pro.services error branches', () => {
   it('createService catch returns 500', async () => {
     ProDetails.findOne.mockImplementation(() => { throw new Error('db'); });
     const res = resMock();
-    await createService({ user: { id: 'p1' }, body: { name: 'X', price: 10, duration: 30 } }, res);
+    // Use a valid name (>=2 chars) to bypass validation and trigger DB call
+    await createService({ user: { id: 'p1' }, body: { name: 'Ok', price: 10, duration: 30 } }, res);
     expect(res.status).toHaveBeenCalledWith(500);
   });
 
@@ -59,4 +60,3 @@ describe('Controller - pro.services error branches', () => {
     expect(res.status).toHaveBeenCalledWith(500);
   });
 });
-
