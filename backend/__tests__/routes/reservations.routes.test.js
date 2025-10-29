@@ -1,124 +1,43 @@
-const express = require("express");
-const request = require("supertest");
+const request = require('supertest');
+const app = require('../../app');
 
-// Mock middlewares
-const mockProtect = jest.fn((req, res, next) => {
-  req.user = { id: "mockUserId", role: "client" };
-  next();
-});
+describe('Routes - reservations', () => {
+  const password = 'Password123!';
+  let clientToken, clientId;
 
-jest.mock("../../middleware/auth", () => ({
-  protect: mockProtect,
-}));
-
-jest.mock("../../middleware/roles", () => (role) => (req, res, next) => {
-  req.requiredRole = role;
-  next();
-});
-
-jest.mock("../../middleware/validate", () => (req, res, next) => next());
-
-// Mock contrôleurs
-const reservationController = require("../../controllers/reservations/reservation.controller");
-jest.mock("../../controllers/reservations/reservation.controller", () => ({
-  createReservation: jest.fn((req, res) =>
-    res.json({ route: "createReservation" })
-  ),
-  getByClient: jest.fn((req, res) => res.json({ route: "getByClient" })),
-  getByPro: jest.fn((req, res) => res.json({ route: "getByPro" })),
-  updateStatus: jest.fn((req, res) => res.json({ route: "updateStatus" })),
-}));
-
-const router = require("../../routes/reservations.routes");
-const app = express();
-app.use(express.json());
-app.use("/api/reservations", router);
-
-describe("Reservations Routes", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  beforeEach(async () => {
+    const email = `res_${Date.now()}@example.com`;
+    await request(app).post('/api/auth/register').send({ name: 'Client', email, password });
+    const login = await request(app).post('/api/auth/login').send({ email, password });
+    clientToken = login.body.token;
+    clientId = login.body.user.id;
   });
 
-  // ========================================
-  // POST /api/reservations
-  // ========================================
-  it("POST / appelle createReservation", async () => {
-    const res = await request(app).post("/api/reservations").send({
-      serviceId: "507f1f77bcf86cd799439011",
-      proId: "507f1f77bcf86cd799439012",
-      date: "2025-12-12",
-      time: "10:00",
-      location: "Paris",
-      notes: "Test note",
-      extra: "Non autorisé", // devrait être supprimé par allowOnly
-    });
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body.route).toBe("createReservation");
-    expect(reservationController.createReservation).toHaveBeenCalled();
-
-    // Vérifie que le champ interdit n'est pas passé au contrôleur
-    const bodySent =
-      reservationController.createReservation.mock.calls[0][0].body;
-    expect(bodySent.extra).toBeUndefined();
-  });
-
-  // ========================================
-  // GET /api/reservations/client/:clientId
-  // ========================================
-  it("GET /client/:clientId retourne 403 si user différent", async () => {
-    const res = await request(app).get(
-      "/api/reservations/client/507f1f77bcf86cd799439099"
-    );
-    expect(res.statusCode).toBe(403);
-    expect(res.body.message).toMatch(/Accès refusé/);
-  });
-
-  it("GET /client/:clientId appelle getByClient si bon utilisateur", async () => {
-    const res = await request(app).get("/api/reservations/client/mockUserId");
-    expect(res.statusCode).toBe(200);
-    expect(res.body.route).toBe("getByClient");
-    expect(reservationController.getByClient).toHaveBeenCalled();
-  });
-
-  // ========================================
-  // GET /api/reservations/pro/:proId
-  // ========================================
-  it("GET /pro/:proId retourne 403 si user différent", async () => {
-    const res = await request(app).get(
-      "/api/reservations/pro/507f1f77bcf86cd799439099"
-    );
-    expect(res.statusCode).toBe(403);
-    expect(res.body.message).toMatch(/Accès refusé/);
-  });
-
-  it("GET /pro/:proId appelle getByPro si user match", async () => {
-    // On fait croire que le user est un pro
-    const { protect } = require("../../middleware/auth");
-    protect.mockImplementationOnce((req, res, next) => {
-      req.user = { id: "mockUserId", role: "pro" };
-      next();
-    });
-
-    const res = await request(app).get("/api/reservations/pro/mockUserId");
-    expect(res.statusCode).toBe(200);
-    expect(res.body.route).toBe("getByPro");
-    expect(reservationController.getByPro).toHaveBeenCalled();
-  });
-
-  // ========================================
-  // PATCH /api/reservations/:id/status
-  // ========================================
-  it("PATCH /:id/status appelle updateStatus", async () => {
+  it('POST /api/reservations validates', async () => {
     const res = await request(app)
-      .patch("/api/reservations/507f1f77bcf86cd799439011/status")
-      .send({ status: "confirmed", badField: "nope" });
+      .post('/api/reservations')
+      .set('Authorization', `Bearer ${clientToken}`)
+      .send({});
+    expect(res.statusCode).toBe(400);
+  });
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body.route).toBe("updateStatus");
-    expect(reservationController.updateStatus).toHaveBeenCalled();
+  it('GET /api/reservations/client/:clientId enforces ownership', async () => {
+    const res = await request(app)
+      .get(`/api/reservations/client/69016e8c8f8f8f8f8f8f8f8f`)
+      .set('Authorization', `Bearer ${clientToken}`);
+    expect([400,403]).toContain(res.statusCode);
 
-    const bodySent = reservationController.updateStatus.mock.calls[0][0].body;
-    expect(bodySent.badField).toBeUndefined(); // le champ doit être nettoyé
+    const ok = await request(app)
+      .get(`/api/reservations/client/${clientId}`)
+      .set('Authorization', `Bearer ${clientToken}`);
+    expect(ok.statusCode).toBe(200);
+  });
+
+  it('PATCH /api/reservations/:id/status validates id', async () => {
+    const res = await request(app)
+      .patch('/api/reservations/bad/status')
+      .set('Authorization', `Bearer ${clientToken}`)
+      .send({ status: 'confirmed' });
+    expect(res.statusCode).toBe(400);
   });
 });

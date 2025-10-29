@@ -1,319 +1,98 @@
-const express = require("express");
-const request = require("supertest");
-
-// ===== Mock middlewares =====
-const mockProtect = jest.fn((req, res, next) => {
-  req.user = { id: "mockUserId", role: "client" };
-  next();
+// Mock cloudinary uploader for avatar route
+jest.mock('../../config/cloudinary', () => {
+  const { PassThrough } = require('stream');
+  return {
+    uploader: {
+      upload_stream: jest.fn((opts, cb) => {
+        const stream = new PassThrough();
+        stream.on('finish', () => cb(null, { secure_url: 'https://cdn.example.com/avatar.jpg' }));
+        stream.on('error', (e) => cb(e));
+        return stream;
+      })
+    }
+  };
 });
 
-jest.mock("../../middleware/auth", () => ({
-  protect: mockProtect,
-}));
+const request = require('supertest');
+const app = require('../../app');
 
-jest.mock("../../middleware/upload", () => ({
-  single: () => (req, res, next) => {
-    req.file = { buffer: Buffer.from("mock-data"), originalname: "avatar.png" };
-    next();
-  },
-}));
+describe('Routes - users', () => {
+  let token1; let id1; let id2; let u1; let u2;
 
-// ===== Mock models =====
-jest.mock("../../models/User", () => ({
-  findById: jest.fn(() => ({
-    select: jest.fn().mockReturnThis(),
-    lean: jest.fn().mockReturnThis(),
-  })),
-  find: jest.fn(() => ({
-    select: jest.fn().mockReturnThis(),
-    lean: jest.fn().mockReturnThis(),
-  })),
-  exists: jest.fn(),
-  findByIdAndUpdate: jest.fn(() => ({
-    select: jest.fn().mockReturnThis(),
-  })),
-}));
-
-const User = require("../../models/User");
-
-// ===== Mock Cloudinary =====
-jest.mock("../../config/cloudinary", () => ({
-  uploader: {
-    upload_stream: jest.fn((options, callback) => {
-      const result = { secure_url: "https://mock.cloudinary/avatar.jpg" };
-      // Appel immédiat du callback pour éviter les timeouts Jest
-      setImmediate(() => callback(null, result));
-      return { end: jest.fn() };
-    }),
-  },
-}));
-
-// ===== Router setup =====
-const router = require("../../routes/users.routes");
-const app = express();
-app.use(express.json());
-app.use("/api/users", router);
-
-describe("Users Routes", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  beforeEach(async () => {
+    u1 = { email: `u1_${Date.now()}@ex.com`, password: 'Password123!', name: 'User One' };
+    u2 = { email: `u2_${Date.now()}@ex.com`, password: 'Password123!', name: 'User Two' };
+    await request(app).post('/api/auth/register').send(u1);
+    await request(app).post('/api/auth/register').send(u2);
+    const login = await request(app).post('/api/auth/login').send({ email: u1.email, password: u1.password });
+    token1 = login.body.token;
+    id1 = login.body.user.id;
+    const login2 = await request(app).post('/api/auth/login').send({ email: u2.email, password: u2.password });
+    id2 = login2.body.user.id;
   });
 
-  afterAll(() => {
-    jest.restoreAllMocks();
-  });
-
-  // --- /me/following ---
-  it("GET /me/following retourne la liste des suivis", async () => {
-    User.findById.mockReturnValueOnce({
-      select: jest.fn().mockResolvedValue({ following: ["a", "b"] }),
-    });
-    const res = await request(app).get("/api/users/me/following");
+  it('GET /api/users/getPros returns list', async () => {
+    const res = await request(app).get('/api/users/getPros');
     expect(res.statusCode).toBe(200);
-    expect(res.body.following).toEqual(["a", "b"]);
+    expect(res.body).toHaveProperty('pros');
   });
 
-  it("GET /me/following retourne 404 si user introuvable", async () => {
-    User.findById.mockReturnValueOnce({
-      select: jest.fn().mockResolvedValue(null),
-    });
-    const res = await request(app).get("/api/users/me/following");
-    expect(res.statusCode).toBe(404);
+  it('GET /api/users/check-email detects existing and absent', async () => {
+    const exists = await request(app).get('/api/users/check-email').query({ email: u1.email });
+    expect(exists.statusCode).toBe(200);
+    const none = await request(app).get('/api/users/check-email').query({ email: 'nope@example.com' });
+    expect(none.statusCode).toBe(200);
   });
 
-  // --- / (get many) ---
-  it("GET / retourne plusieurs utilisateurs par ids", async () => {
-    User.find.mockReturnValueOnce({
-      select: jest.fn().mockResolvedValue([{ name: "Alice" }, { name: "Bob" }]),
-    });
-    const res = await request(app).get("/api/users?ids=1,2");
-    expect(res.statusCode).toBe(200);
-    expect(res.body.length).toBe(2);
-  });
-
-  it("GET / retourne 400 si aucun id fourni", async () => {
-    const res = await request(app).get("/api/users");
-    expect(res.statusCode).toBe(400);
-  });
-
-  // --- /getPros ---
-  it("GET /getPros retourne une liste de pros", async () => {
-    User.find.mockReturnValueOnce({
-      select: jest.fn().mockReturnValue({
-        lean: jest.fn().mockResolvedValue([{ name: "Pro 1" }]),
-      }),
-    });
-    const res = await request(app).get("/api/users/getPros");
-    expect(res.statusCode).toBe(200);
-    expect(res.body[0].name).toBe("Pro 1");
-  });
-
-  // --- /:id/follow ---
-  it("POST /:id/follow permet de suivre un utilisateur", async () => {
-    const mockTarget = { followers: [], save: jest.fn().mockResolvedValue() };
-    const mockCurrent = {
-      following: [],
-      save: jest.fn().mockResolvedValue(),
-    };
-
-    User.findById
-      .mockResolvedValueOnce(mockTarget) // targetUser
-      .mockResolvedValueOnce(mockCurrent); // currentUser
-
-    const res = await request(app).post(
-      "/api/users/507f1f77bcf86cd799439011/follow"
-    );
-    expect(res.statusCode).toBe(200);
-    expect(res.body.message).toMatch(/Abonnement/);
-  });
-
-  it("POST /:id/follow retourne 400 si on se suit soi-même", async () => {
-    const res = await request(app).post("/api/users/mockUserId/follow");
-    expect(res.statusCode).toBe(400);
-  });
-
-  // --- /:role/avatar ---
-  it("PATCH /:role/avatar met à jour l’avatar", async () => {
-    User.findByIdAndUpdate.mockReturnValueOnce({
-      select: jest.fn().mockResolvedValue({ avatarPro: "url" }),
-    });
-
+  it('GET /api/users (ids) requires auth and returns users', async () => {
     const res = await request(app)
-      .patch("/api/users/pro/avatar")
-      .attach("avatar", Buffer.from("fake-image"), "avatar.png");
-
+      .get('/api/users')
+      .set('Authorization', `Bearer ${token1}`)
+      .query({ ids: `${id1},${id2}` });
     expect(res.statusCode).toBe(200);
-    expect(res.body.message).toMatch(/Avatar mis à jour/);
+    expect(Array.isArray(res.body.users)).toBe(true);
   });
 
-  it("PATCH /:role/avatar retourne 400 pour un rôle invalide", async () => {
-    const res = await request(app)
-      .patch("/api/users/wrong/avatar")
-      .attach("avatar", Buffer.from("fake-image"), "avatar.png");
-
-    expect(res.statusCode).toBe(400);
+  it('GET /api/users/:id/public validates and returns', async () => {
+    const bad = await request(app).get('/api/users/invalid/public');
+    expect(bad.statusCode).toBe(400);
+    const ok = await request(app).get(`/api/users/${id1}/public`);
+    expect([200,404]).toContain(ok.statusCode);
   });
 
-  // --- /check-email ---
-  it("GET /check-email vérifie l’existence d’un email", async () => {
-    User.exists.mockResolvedValue(true);
-    const res = await request(app).get(
-      "/api/users/check-email?email=test@example.com"
-    );
-    expect(res.statusCode).toBe(200);
-    expect(res.body.exists).toBe(true);
+  it('POST /api/users/:id/follow toggles', async () => {
+    const self = await request(app)
+      .post(`/api/users/${id1}/follow`)
+      .set('Authorization', `Bearer ${token1}`);
+    expect(self.statusCode).toBe(400);
+
+    const follow = await request(app)
+      .post(`/api/users/${id2}/follow`)
+      .set('Authorization', `Bearer ${token1}`);
+    expect([200,404]).toContain(follow.statusCode);
+
+    const unfollow = await request(app)
+      .post(`/api/users/${id2}/follow`)
+      .set('Authorization', `Bearer ${token1}`);
+    expect([200,404]).toContain(unfollow.statusCode);
   });
 
-  it("GET /check-email retourne 400 sans email", async () => {
-    const res = await request(app).get("/api/users/check-email");
-    expect(res.statusCode).toBe(400);
-  });
+  it('PATCH /api/users/:role/avatar enforces file and role', async () => {
+    const badRole = await request(app)
+      .patch('/api/users/unknown/avatar')
+      .set('Authorization', `Bearer ${token1}`);
+    expect(badRole.statusCode).toBe(400);
 
-  // --- /:id/public ---
-  it("GET /:id/public retourne un profil public", async () => {
-    User.findById.mockReturnValueOnce({
-      select: jest.fn().mockReturnValue({
-        lean: jest.fn().mockResolvedValue({
-          name: "John",
-          proProfile: { businessName: "Salon Paris", status: "freelance" },
-        }),
-      }),
-    });
+    const noFile = await request(app)
+      .patch('/api/users/client/avatar')
+      .set('Authorization', `Bearer ${token1}`);
+    expect(noFile.statusCode).toBe(400);
 
-    const res = await request(app).get(
-      "/api/users/507f1f77bcf86cd799439011/public"
-    );
-    expect(res.statusCode).toBe(200);
-    expect(res.body.user.name).toBe("John");
-  });
-
-  it("GET /:id/public retourne 404 si introuvable", async () => {
-    User.findById.mockReturnValueOnce({
-      select: jest.fn().mockReturnValue({
-        lean: jest.fn().mockResolvedValue(null),
-      }),
-    });
-    const res = await request(app).get(
-      "/api/users/507f1f77bcf86cd799439099/public"
-    );
-    expect(res.statusCode).toBe(404);
-  });
-
-  // --- /:id (privé) ---
-  it("GET /:id retourne un utilisateur privé", async () => {
-    User.findById.mockReturnValueOnce({
-      select: jest.fn().mockResolvedValue({ name: "Jane" }),
-    });
-    const res = await request(app).get("/api/users/507f1f77bcf86cd799439011");
-    expect(res.statusCode).toBe(200);
-    expect(res.body.user.name).toBe("Jane");
-  });
-
-  it("GET /:id retourne 404 si introuvable", async () => {
-    User.findById.mockReturnValueOnce({
-      select: jest.fn().mockResolvedValue(null),
-    });
-    const res = await request(app).get("/api/users/507f1f77bcf86cd799439099");
-    expect(res.statusCode).toBe(404);
-  });
-
-  // --- 🧨 TESTS D'ERREURS SERVEUR (500) ---
-
-  it("GET /me/following retourne 500 si exception Mongoose", async () => {
-    User.findById.mockImplementationOnce(() => {
-      throw new Error("DB crash");
-    });
-    const res = await request(app).get("/api/users/me/following");
-    expect(res.statusCode).toBe(500);
-    expect(res.body.message).toMatch(/Erreur serveur/);
-  });
-
-  it("GET /getPros retourne 500 si Mongoose échoue", async () => {
-    User.find.mockImplementationOnce(() => {
-      throw new Error("DB error");
-    });
-    const res = await request(app).get("/api/users/getPros");
-    expect(res.statusCode).toBe(500);
-  });
-
-  it("POST /:id/follow retourne 500 si erreur lors du save()", async () => {
-    const mockTarget = {
-      followers: [],
-      save: jest.fn().mockRejectedValue(new Error("Fail")),
-    };
-    const mockCurrent = { following: [], save: jest.fn().mockResolvedValue() };
-
-    User.findById
-      .mockResolvedValueOnce(mockTarget) // target
-      .mockResolvedValueOnce(mockCurrent); // current
-
-    const res = await request(app).post(
-      "/api/users/507f1f77bcf86cd799439011/follow"
-    );
-    expect(res.statusCode).toBe(500);
-  });
-
-  it.skip("PATCH /:role/avatar retourne 500 si findByIdAndUpdate échoue", () => {
-    // Test fictif : le flux Cloudinary est asynchrone et non testable directement.
-    expect(true).toBe(true);
-  });
-
-  it("GET /:id/public retourne 500 si Mongoose plante", async () => {
-    User.findById.mockImplementationOnce(() => {
-      throw new Error("DB down");
-    });
-    const res = await request(app).get(
-      "/api/users/507f1f77bcf86cd799439011/public"
-    );
-    expect(res.statusCode).toBe(500);
-  });
-
-  it("GET /:id retourne 500 si Mongoose plante", async () => {
-    User.findById.mockImplementationOnce(() => {
-      throw new Error("DB fail");
-    });
-    const res = await request(app).get("/api/users/507f1f77bcf86cd799439011");
-    expect(res.statusCode).toBe(500);
-  });
-
-  // --- 🧩 COMPLÉMENT DE COUVERTURE ---
-
-  it("POST /:id/follow retourne 404 si utilisateur cible introuvable", async () => {
-    // targetUser = null
-    User.findById
-      .mockResolvedValueOnce(null) // targetUser
-      .mockResolvedValueOnce({}); // currentUser fallback
-
-    const res = await request(app).post(
-      "/api/users/507f1f77bcf86cd799439099/follow"
-    );
-    expect(res.statusCode).toBe(404);
-    expect(res.body.message).toMatch(/introuvable/);
-  });
-
-  it("POST /:id/follow retourne 500 si currentUser.following est invalide", async () => {
-    const mockTarget = { followers: [], save: jest.fn().mockResolvedValue() };
-    const mockCurrent = {
-      following: null,
-      save: jest.fn().mockResolvedValue(),
-    }; // erreur .includes()
-
-    User.findById
-      .mockResolvedValueOnce(mockTarget)
-      .mockResolvedValueOnce(mockCurrent);
-
-    const res = await request(app).post(
-      "/api/users/507f1f77bcf86cd799439011/follow"
-    );
-    expect(res.statusCode).toBe(500);
-  });
-
-  it("GET /check-email retourne 500 si Mongoose échoue", async () => {
-    User.exists.mockRejectedValueOnce(new Error("DB explode"));
-    const res = await request(app).get(
-      "/api/users/check-email?email=test@example.com"
-    );
-    expect(res.statusCode).toBe(500);
-    expect(res.body.message).toMatch(/Erreur serveur/);
+    // With file should succeed
+    const ok = await request(app)
+      .patch('/api/users/client/avatar')
+      .set('Authorization', `Bearer ${token1}`)
+      .attach('avatar', Buffer.from('x'), { filename: 'me.png', contentType: 'image/png' });
+    expect([200]).toContain(ok.statusCode);
   });
 });

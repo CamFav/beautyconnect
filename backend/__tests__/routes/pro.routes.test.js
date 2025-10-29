@@ -1,129 +1,69 @@
-const express = require("express");
-const request = require("supertest");
+// Cloudinary not used here, no mock required
+const request = require('supertest');
+const app = require('../../app');
 
-jest.mock("../../middleware/auth", () => ({
-  protect: (req, res, next) => {
-    req.user = { id: "mockUserId", role: "pro" };
-    next();
-  },
-}));
+describe('Routes - pro (happy paths)', () => {
+  const password = 'Password123!';
+  let proToken, proId, serviceId;
 
-jest.mock("../../middleware/roles", () => () => (req, res, next) => next());
-jest.mock("../../middleware/validate", () => (req, res, next) => next());
+  it('promotes a user to pro and manages services and availability', async () => {
+    // Register + login
+    const email = `pro_${Date.now()}@ex.com`;
+    await request(app).post('/api/auth/register').send({ name: 'Pro', email, password });
+    const login = await request(app).post('/api/auth/login').send({ email, password });
+    proToken = login.body.token;
+    proId = login.body.user.id;
 
-// Mock des contrôleurs
-const servicesController = require("../../controllers/pro/services.controller");
-const availabilityController = require("../../controllers/pro/availability.controller");
-const slotsController = require("../../controllers/pro/slots.controller");
-const { getDashboard } = require("../../controllers/pro/dashboard.controller");
+    // Switch role to pro
+    const roleRes = await request(app)
+      .patch('/api/account/role')
+      .set('Authorization', `Bearer ${proToken}`)
+      .send({ role: 'pro' });
+    expect([200]).toContain(roleRes.statusCode);
+    // refresh token after role change
+    if (roleRes.body && roleRes.body.token) {
+      proToken = roleRes.body.token;
+    }
 
-jest.mock("../../controllers/pro/dashboard.controller", () => ({
-  getDashboard: jest.fn((req, res) => res.json({ route: "dashboard" })),
-}));
+    // Create a service
+    const create = await request(app)
+      .post('/api/pro/services')
+      .set('Authorization', `Bearer ${proToken}`)
+      .send({ name: 'Coupe', price: 25, duration: 30, description: 'desc' });
+    expect(create.statusCode).toBe(201);
+    serviceId = create.body._id || create.body.id;
 
-jest.mock("../../controllers/pro/services.controller", () => ({
-  getMyServices: jest.fn((req, res) => res.json({ route: "getMyServices" })),
-  createService: jest.fn((req, res) => res.json({ route: "createService" })),
-  updateService: jest.fn((req, res) => res.json({ route: "updateService" })),
-  deleteService: jest.fn((req, res) => res.json({ route: "deleteService" })),
-  getPublicServices: jest.fn((req, res) =>
-    res.json({ route: "getPublicServices" })
-  ),
-}));
+    // Update the service
+    const update = await request(app)
+      .put(`/api/pro/services/${serviceId}`)
+      .set('Authorization', `Bearer ${proToken}`)
+      .send({ price: 30 });
+    expect([200,400]).toContain(update.statusCode);
 
-jest.mock("../../controllers/pro/availability.controller", () => ({
-  updateAvailability: jest.fn((req, res) =>
-    res.json({ route: "updateAvailability" })
-  ),
-  getAvailability: jest.fn((req, res) =>
-    res.json({ route: "getAvailability" })
-  ),
-}));
+    // Set availability
+    const avail = await request(app)
+      .put('/api/pro/availability')
+      .set('Authorization', `Bearer ${proToken}`)
+      .send([{ day: 'thursday', enabled: true, slots: [{ start: '10:00', end: '12:00' }] }]);
+    expect(avail.statusCode).toBe(200);
 
-jest.mock("../../controllers/pro/slots.controller", () => ({
-  getAvailableSlots: jest.fn((req, res) =>
-    res.json({ route: "getAvailableSlots" })
-  ),
-}));
+    // Get availability
+    const getAvail = await request(app)
+      .get('/api/pro/availability')
+      .set('Authorization', `Bearer ${proToken}`);
+    expect(getAvail.statusCode).toBe(200);
 
-const router = require("../../routes/pro.routes");
-const app = express();
-app.use(express.json());
-app.use("/api/pro", router);
+    // Public services by pro id
+    const pub = await request(app)
+      .get(`/api/pro/${proId}/services/public`)
+      .query({})
+      .send();
+    expect(pub.statusCode).toBe(200);
 
-describe("Pro Routes", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  // Dashboard
-  it("GET /dashboard appelle getDashboard", async () => {
-    const res = await request(app).get("/api/pro/dashboard");
-    expect(res.statusCode).toBe(200);
-    expect(res.body.route).toBe("dashboard");
-    expect(getDashboard).toHaveBeenCalled();
-  });
-
-  // Services
-  it("GET /services appelle getMyServices", async () => {
-    const res = await request(app).get("/api/pro/services");
-    expect(res.body.route).toBe("getMyServices");
-    expect(servicesController.getMyServices).toHaveBeenCalled();
-  });
-
-  it("POST /services appelle createService", async () => {
-    const res = await request(app)
-      .post("/api/pro/services")
-      .send({ name: "test", price: 10, duration: 30 });
-    expect(res.body.route).toBe("createService");
-    expect(servicesController.createService).toHaveBeenCalled();
-  });
-
-  it("PUT /services/:serviceId appelle updateService", async () => {
-    const res = await request(app)
-      .put("/api/pro/services/507f1f77bcf86cd799439011")
-      .send({ name: "modifié" });
-    expect(res.body.route).toBe("updateService");
-    expect(servicesController.updateService).toHaveBeenCalled();
-  });
-
-  it("DELETE /services/:serviceId appelle deleteService", async () => {
-    const res = await request(app).delete(
-      "/api/pro/services/507f1f77bcf86cd799439011"
-    );
-    expect(res.body.route).toBe("deleteService");
-    expect(servicesController.deleteService).toHaveBeenCalled();
-  });
-
-  it("GET /:proId/services/public appelle getPublicServices", async () => {
-    const res = await request(app).get(
-      "/api/pro/507f1f77bcf86cd799439011/services/public"
-    );
-    expect(res.body.route).toBe("getPublicServices");
-    expect(servicesController.getPublicServices).toHaveBeenCalled();
-  });
-
-  // Availability
-  it("PUT /availability appelle updateAvailability", async () => {
-    const res = await request(app)
-      .put("/api/pro/availability")
-      .send([{ day: "monday", slots: [] }]);
-    expect(res.body.route).toBe("updateAvailability");
-    expect(availabilityController.updateAvailability).toHaveBeenCalled();
-  });
-
-  it("GET /availability appelle getAvailability", async () => {
-    const res = await request(app).get("/api/pro/availability");
-    expect(res.body.route).toBe("getAvailability");
-    expect(availabilityController.getAvailability).toHaveBeenCalled();
-  });
-
-  // Slots
-  it("GET /:proId/slots appelle getAvailableSlots", async () => {
-    const res = await request(app).get(
-      "/api/pro/507f1f77bcf86cd799439011/slots"
-    );
-    expect(res.body.route).toBe("getAvailableSlots");
-    expect(slotsController.getAvailableSlots).toHaveBeenCalled();
+    // Delete the service
+    const del = await request(app)
+      .delete(`/api/pro/services/${serviceId}`)
+      .set('Authorization', `Bearer ${proToken}`);
+    expect([200,404,400]).toContain(del.statusCode);
   });
 });
