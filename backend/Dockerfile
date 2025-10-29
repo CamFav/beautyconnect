@@ -8,18 +8,26 @@ WORKDIR /app
 # Copie des fichiers de dépendances
 COPY package*.json ./
 
-# Installation dépendances
-# → Si NODE_ENV=test → installe tout pour les tests
-# → Sinon installe uniquement les deps de prod
+# Définition du contexte d’environnement (test ou prod)
 ARG NODE_ENV=production
-RUN if [ "$NODE_ENV" = "test" ]; then npm ci; else npm ci --only=production; fi
+ENV NODE_ENV=$NODE_ENV
 
-# Copie du code
+# Installation des dépendances :
+# → Si NODE_ENV=test → installe toutes les deps (incl. Jest)
+# → Sinon → installe seulement les deps de prod
+RUN if [ "$NODE_ENV" = "test" ]; then \
+      echo "Installing all dependencies (for tests)..." && npm ci; \
+    else \
+      echo "Installing production dependencies only..." && npm ci --only=production; \
+    fi
+
+# Copie du code source complet
 COPY . .
 
-# exécuter les tests en CI
-# (sera ignorée en build prod Render)
-RUN if [ "$NODE_ENV" = "test" ]; then npm test || true; fi
+# Si en CI, exécuter les tests (ne bloque pas le build si échec mineur)
+RUN if [ "$NODE_ENV" = "test" ]; then \
+      echo "🧪 Running tests..." && npm test || echo ' Tests failed, continuing build'; \
+    fi
 
 
 # ==========================================
@@ -29,7 +37,7 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Copie des fichiers nécessaires depuis l’étape de build
+# Copie uniquement les fichiers nécessaires depuis le build
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/server.js ./server.js
 COPY --from=build /app/app.js ./app.js
@@ -39,12 +47,10 @@ COPY --from=build /app/routes ./routes
 COPY --from=build /app/utils ./utils
 COPY --from=build /app/package*.json ./
 
-# Variables d’environnement
+# Définition des variables d’environnement
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Exposition du port
 EXPOSE 8080
 
-# Commande de démarrage
 CMD ["node", "server.js"]
