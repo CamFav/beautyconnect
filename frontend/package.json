@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "prebuild": "node ./scripts/generate-sitemap.mjs",
+    "prebuild": "node ./scripts/generate-sitemap.mjs || echo 'Skipping sitemap...'",
     "build": "vite build",
     "preview": "vite preview",
     "serve": "serve -s dist -l 5173",
