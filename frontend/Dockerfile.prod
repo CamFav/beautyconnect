@@ -13,11 +13,11 @@ RUN npm ci --legacy-peer-deps
 COPY . .
 
 # Injecte la variable Render dans le build
-ARG VITE_API_URL
-ENV VITE_API_URL=${VITE_API_URL}
+ARG VITE_API_URL=https://beautyconnect-backend-pquy.onrender.com/api
+ENV VITE_API_URL=$VITE_API_URL
 
 # Build Vite
-RUN npm run build
+RUN echo "Building with VITE_API_URL=$VITE_API_URL" && npm run build
 
 # Vérification
 RUN ls -l /app/dist
