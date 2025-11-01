@@ -1,0 +1,89 @@
+services:
+  # ============================
+  # FRONTEND (Build + Serve)
+  # ============================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - beautyconnect_net
+    restart: always
+
+  # ============================
+  # BACKEND (Production)
+  # ============================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:5000"
+    env_file:
+      - ./backend/.env.production
+    environment:
+      - NODE_ENV=production
+      - MONGO_URL=mongodb://beautyconnect_app:StrongPassword123!@mongo:27017/beautyconnect?authSource=admin
+    command: node server.js
+    depends_on:
+      - mongo
+    networks:
+      - beautyconnect_net
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  # ============================
+  # MONGO DATABASE (avec auth)
+  # ============================
+  mongo:
+    image: mongo:6
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=beautyconnect_app
+      - MONGO_INITDB_ROOT_PASSWORD=StrongPassword123!
+      - MONGO_INITDB_DATABASE=beautyconnect
+    volumes:
+      - mongo_data:/data/db
+      - mongo_backup:/data/backup
+    networks:
+      - beautyconnect_net
+
+  # ============================
+  # MONGO BACKUP (automatique)
+  # ============================
+  mongo-backup:
+    image: alpine:3.19
+    container_name: mongo_backup
+    restart: always
+    volumes:
+      - ./backup:/backup
+      - mongo_backup:/data/backup
+    depends_on:
+      - mongo
+    networks:
+      - beautyconnect_net
+    command: >
+      sh -c "apk add --no-cache mongodb-tools &&
+             echo '0 2 * * * /backup/backup.sh >> /var/log/cron.log 2>&1' > /etc/crontabs/root &&
+             crond -f -d 8"
+
+# ============================
+# PERSISTENCE & NETWORK
+# ============================
+volumes:
+  mongo_data:
+  mongo_backup:
+
+networks:
+  beautyconnect_net:
+    driver: bridge

@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-10-28T23:49:14.336Z",
+  "apiBase": "http://localhost:8080/api",
+  "results": {
+    "headers": {
+      "error": "socket hang up"
+    },
+    "rateLimit": {
+      "active": true,
+      "message": "socket hang up"
+    },
+    "mongo": {
+      "status": "❌ Erreur MongoDB",
+      "message": "command find requires authentication"
+    },
+    "fixUsers": {
+      "status": "⚠️ Non accessible ou clé invalide",
+      "message": "socket hang up"
+    }
+  },
+  "summary": "⚠️ Des points à améliorer"
+}
