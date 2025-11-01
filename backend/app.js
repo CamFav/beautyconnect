@@ -41,7 +41,12 @@ app.options("*", cors());
 if (isDev) {
   app.use(morgan("dev"));
 } else {
-  const logStream = fs.createWriteStream(path.join(__dirname, "access.log"), {
+  const logsDir = path.join(__dirname, "logs");
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir);
+  }
+
+  const logStream = fs.createWriteStream(path.join(logsDir, "access.log"), {
     flags: "a",
   });
   app.use(morgan("combined", { stream: logStream }));
