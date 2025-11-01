@@ -8,7 +8,6 @@ const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
 const fs = require("fs");
 const path = require("path");
-const compression = require("compression");
 
 const app = express();
 app.disable("x-powered-by");
@@ -42,11 +41,14 @@ app.options("*", cors());
 if (isDev) {
   app.use(morgan("dev"));
 } else {
-  const logStream = fs.createWriteStream(
-    path.join(__dirname, "logs", "access.log"),
-    { flags: "a" }
-  );
+  const logsDir = path.join(__dirname, "logs");
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir);
+  }
 
+  const logStream = fs.createWriteStream(path.join(logsDir, "access.log"), {
+    flags: "a",
+  });
   app.use(morgan("combined", { stream: logStream }));
 }
 
@@ -92,7 +94,7 @@ let adminLimiter;
 if (process.env.NODE_ENV === "production") {
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 min
-    max: 5000,
+    max: 100,
     standardHeaders: true,
     legacyHeaders: false,
     message: "Trop de requêtes depuis cette IP. Réessayez plus tard.",
@@ -101,7 +103,7 @@ if (process.env.NODE_ENV === "production") {
 
   adminLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1h
-    max: 100,
+    max: 10,
     message: "Accès admin trop fréquent. Réessayez plus tard.",
   });
 
@@ -116,35 +118,6 @@ if (process.env.NODE_ENV === "production") {
 // ========================================
 app.use(xss());
 app.use(express.json({ limit: "10kb" }));
-
-// ========================================
-// Compression + Cache static pour le frontend
-// ========================================
-app.use(compression());
-
-const frontendPath = path.join(__dirname, "dist");
-if (fs.existsSync(frontendPath)) {
-  app.use(
-    express.static(frontendPath, {
-      maxAge: "1y",
-      etag: false,
-      setHeaders: (res, filePath) => {
-        if (filePath.endsWith(".html")) {
-          // Ne pas mettre en cache les fichiers HTML
-          res.setHeader("Cache-Control", "no-cache");
-        } else {
-          // Cache fort pour les assets (js, css, images…)
-          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-        }
-      },
-    })
-  );
-
-  // Fallback pour le routage SPA
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
-  });
-}
 
 // ========================================
 // Routes principales
