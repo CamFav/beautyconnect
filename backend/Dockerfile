@@ -1,5 +1,5 @@
 # ==========================================
-# Étape 1 : Build des dépendances
+# ÉTAPE 1 : Build des dépendances
 # ==========================================
 FROM node:20-alpine AS build
 
@@ -21,11 +21,11 @@ RUN if [ "$NODE_ENV" = "test" ]; then \
       echo "Installing production dependencies only..." && npm ci --only=production; \
     fi
 
-# Copie du code source
+# Copie du code source complet (pour disposer de tous les dossiers dans le build)
 COPY . .
 
 # ==========================================
-# Étape 2 : Image de production
+# ÉTAPE 2 : Image de production
 # ==========================================
 FROM node:20-alpine AS production
 
@@ -39,6 +39,8 @@ COPY --from=build /app/config ./config
 COPY --from=build /app/models ./models
 COPY --from=build /app/routes ./routes
 COPY --from=build /app/utils ./utils
+COPY --from=build /app/middleware ./middleware
+COPY --from=build /app/controllers ./controllers
 COPY --from=build /app/package*.json ./
 
 # Variables d’environnement
