@@ -12,6 +12,10 @@ RUN npm ci --legacy-peer-deps
 # Copie du reste du frontend
 COPY . .
 
+# Injecte la variable Render dans le build
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Build Vite
 RUN npm run build
 
