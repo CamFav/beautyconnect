@@ -73,9 +73,9 @@ describe('Routes - account', () => {
   });
 
   it('PATCH /api/account/pro/header rejects without file (as pro) and accepts with file', async () => {
-    // Ensure the user is a pro (route is restricted to role "pro")
-    await request(app)
-      .put('/api/account/upgrade')
+    // Upgrade to pro via pro-profile (returns fresh token with activeRole=pro)
+    const upgrade = await request(app)
+      .patch('/api/account/pro-profile')
       .set('Authorization', `Bearer ${token}`)
       .send({
         businessName: 'Salon Test',
@@ -84,17 +84,18 @@ describe('Routes - account', () => {
         experience: '<1 an',
         location: { city: 'Paris', country: 'France' },
         exerciseType: [],
-        categories: []
+        categories: ['Coiffure']
       });
+    const proToken = upgrade.body?.token || token;
 
     const noFile = await request(app)
       .patch('/api/account/pro/header')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Authorization', `Bearer ${proToken}`);
     expect(noFile.statusCode).toBe(400);
 
     const ok = await request(app)
       .patch('/api/account/pro/header')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${proToken}`)
       .attach('header', Buffer.from('dummy'), { filename: 'test.png', contentType: 'image/png' });
     expect([200,404]).toContain(ok.statusCode);
   });
