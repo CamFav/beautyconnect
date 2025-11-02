@@ -73,17 +73,22 @@ jobs:
           MONGO_URL: mongodb://mongo:27017/beautyconnect_test
         run: docker compose up -d mongo backend
 
-      # ------------------------------
+        # ------------------------------
       # Exécution des tests Jest
       # ------------------------------
       - name: Run Jest tests in backend container
+        env:
+          NODE_ENV: test
+          JWT_SECRET: testsecret
+          MONGO_URL: mongodb://mongo:27017/beautyconnect_test
+          DISABLE_MMS: 1 # force le disable de mongodb-memory-server
         run: |
           docker compose run --rm \
             -e NODE_ENV=test \
             -e JWT_SECRET=testsecret \
             -e MONGO_URL=mongodb://mongo:27017/beautyconnect_test \
+            -e DISABLE_MMS=1 \
             backend sh -c "npm test -- --runInBand --coverage"
-
       # ------------------------------
       # Arrêt et nettoyage
       # ------------------------------

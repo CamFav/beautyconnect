@@ -72,30 +72,15 @@ describe('Routes - account', () => {
     expect([200,400,404]).toContain(res.statusCode);
   });
 
-  it('PATCH /api/account/pro/header rejects without file (as pro) and accepts with file', async () => {
-    // Upgrade to pro via pro-profile (returns fresh token with activeRole=pro)
-    const upgrade = await request(app)
-      .patch('/api/account/pro-profile')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        businessName: 'Salon Test',
-        siret: '12345678901234',
-        status: 'freelance',
-        experience: '<1 an',
-        location: { city: 'Paris', country: 'France' },
-        exerciseType: [],
-        categories: ['Coiffure']
-      });
-    const proToken = upgrade.body?.token || token;
-
+  it('PATCH /api/account/pro/header rejects without file and accepts with file', async () => {
     const noFile = await request(app)
       .patch('/api/account/pro/header')
-      .set('Authorization', `Bearer ${proToken}`);
+      .set('Authorization', `Bearer ${token}`);
     expect(noFile.statusCode).toBe(400);
 
     const ok = await request(app)
       .patch('/api/account/pro/header')
-      .set('Authorization', `Bearer ${proToken}`)
+      .set('Authorization', `Bearer ${token}`)
       .attach('header', Buffer.from('dummy'), { filename: 'test.png', contentType: 'image/png' });
     expect([200,404]).toContain(ok.statusCode);
   });

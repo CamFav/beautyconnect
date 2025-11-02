@@ -100,10 +100,11 @@ const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (updatedData) => {
-    setUser((prev) => ({
-      ...prev,
-      ...updatedData,
-    }));
+    setUser((prev) => {
+      const newUser = { ...prev, ...updatedData };
+      localStorage.setItem("user", JSON.stringify(newUser));
+      return newUser;
+    });
   };
 
   useEffect(() => {
@@ -125,6 +126,25 @@ const AuthProvider = ({ children }) => {
 
     window.addEventListener("logout", handleExternalLogout);
     return () => window.removeEventListener("logout", handleExternalLogout);
+  }, []);
+
+  useEffect(() => {
+    const handleStorageUpdate = () => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          setUser(parsed);
+        } catch (e) {
+          console.warn(
+            "[Auth] Impossible de parser le user depuis localStorage"
+          );
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageUpdate);
+    return () => window.removeEventListener("storage", handleStorageUpdate);
   }, []);
 
   return (

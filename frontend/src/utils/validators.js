@@ -7,6 +7,7 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
 const phoneRegex = /^(?:\+?\d{1,3}\s?)?(?:\d{6,14})$/;
 const siretRegex = /^\d{14}$/;
 
+// === MESSAGES STANDARD ===
 export const messages = {
   name: "Le nom doit contenir entre 2 et 60 caractères et peut inclure lettres, chiffres, espaces, tirets ou &.",
   email: "Adresse email invalide.",
@@ -14,8 +15,10 @@ export const messages = {
     "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.",
   phone: "Numéro de téléphone invalide (ex: +33611223344).",
   siret: "Le numéro SIRET doit contenir exactement 14 chiffres.",
+  loginPassword: "Le mot de passe est requis.", // ➕ Ajout cohérent pour les formulaires de connexion
 };
 
+// === VALIDATIONS GÉNÉRIQUES ===
 export const validateName = (value) => nameRegex.test(value);
 export const validateEmail = (value) => emailRegex.test(value);
 export const validatePassword = (value) => passwordRegex.test(value);
@@ -52,4 +55,13 @@ export const mapApiErrors = (errorPayload) => {
     out._error = errorPayload.message;
   }
   return out;
+};
+
+// === Validation spécifique au LOGIN ===
+// Utilisée uniquement dans le formulaire de connexion
+export const validateLoginForm = (data) => {
+  const errors = {};
+  if (!validateEmail(data.email)) errors.email = messages.email;
+  if (!data.password?.trim()) errors.password = messages.loginPassword;
+  return errors;
 };

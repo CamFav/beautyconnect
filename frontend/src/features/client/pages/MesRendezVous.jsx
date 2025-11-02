@@ -3,7 +3,7 @@ import { useAuth } from "../../../context/AuthContextBase";
 import httpClient from "../../../api/http/httpClient";
 import ReservationCard from "../components/ReservationCard";
 import AlertMessage from "../../../components/feedback/AlertMessage";
-import Seo from "@/components/seo/Seo.jsx";
+import Seo from "@/components/seo/Seo";
 
 export default function MesRendezVous() {
   const { user } = useAuth();

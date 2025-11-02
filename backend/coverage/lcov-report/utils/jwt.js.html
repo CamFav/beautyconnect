@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">94.44% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>17/18</span>
+                <span class='fraction'>18/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
+                <span class="strong">88.88% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>15/18</span>
+                <span class='fraction'>16/18</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">94.44% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>17/18</span>
+                <span class='fraction'>18/18</span>
             </div>
         
             
@@ -113,46 +113,46 @@
 <a name='L48'></a><a href='#L48'>48</a>
 <a name='L49'></a><a href='#L49'>49</a>
 <a name='L50'></a><a href='#L50'>50</a>
-<a name='L51'></a><a href='#L51'>51</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">16x</span>
+<a name='L51'></a><a href='#L51'>51</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">25x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">16x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">16x</span>
-<span class="cline-any cline-yes">16x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">16x</span>
-<span class="cline-any cline-yes">83x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">82x</span>
-<span class="cline-any cline-yes">82x</span>
+<span class="cline-any cline-yes">25x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">81x</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">55x</span>
+<span class="cline-any cline-yes">55x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">54x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">81x</span>
+<span class="cline-any cline-yes">54x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">24x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -162,25 +162,25 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">24x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const jwt = require("jsonwebtoken");
 &nbsp;
-<span class="missing-if-branch" title="if path not taken" >I</span>if (!process.env.JWT_SECRET) {
-<span class="cstat-no" title="statement not covered" >  throw new Error(</span>
+if (!process.env.JWT_SECRET) {
+  throw new Error(
     "Erreur: la variable d’environnement JWT_SECRET est manquante."
   );
 }
 &nbsp;
 const JWT_ISSUER = "beautyconnect";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || <span class="branch-1 cbranch-no" title="branch not covered" >"1h";</span>
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
 &nbsp;
-// ✅ Génération d’un token sécurisé
+// Génération d’un token sécurisé
 const generateToken = (user) =&gt; {
   if (!user) {
     throw new Error("Impossible de générer un token sans utilisateur.");
   }
 &nbsp;
-  // On récupère l'ID user de manière fiable
+  // Récupère l'ID user
   const userId = user._id || user.id || user.sub;
   if (!userId) {
     throw new Error(
@@ -192,7 +192,7 @@ const generateToken = (user) =&gt; {
     sub: String(userId),
     email: user.email || <span class="branch-1 cbranch-no" title="branch not covered" >null,</span>
     // Harmonisation avec le middleware protect
-    activeRole: user.activeRole || user.role || null,
+    activeRole: user.activeRole || user.role || <span class="branch-2 cbranch-no" title="branch not covered" >null,</span>
   };
 &nbsp;
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -201,7 +201,7 @@ const generateToken = (user) =&gt; {
   });
 };
 &nbsp;
-// ✅ Vérification et décodage
+// Vérification et décodage
 const verifyToken = (token) =&gt; {
   if (!token) {
     throw new Error("Aucun token fourni.");
@@ -220,7 +220,7 @@ module.exports = { generateToken, verifyToken };
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-25T01:32:17.042Z
+                at 2025-10-29T03:36:29.669Z
             </div>
         <script src="../prettify.js"></script>
         <script>

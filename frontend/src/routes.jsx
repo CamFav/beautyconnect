@@ -1,47 +1,45 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy, useContext } from "react";
 import { AuthContext } from "./context/AuthContextBase";
-import Layout from "./components/layout/Layout.jsx";
+import Layout from "./components/layout/Layout";
+import UpgradeProRoute from "@/features/auth/components/register-pro/UpgradeProRoute";
 
-// Lazy imports
-const Home = lazy(() => import("./features/home/pages/Home.jsx"));
-const Login = lazy(() => import("./features/auth/pages/Login.jsx"));
-const Register = lazy(() => import("./features/auth/pages/Register.jsx"));
-const Landing = lazy(() => import("./features/home/pages/Landing.jsx"));
-const RegisterPro = lazy(() => import("./features/auth/pages/RegisterPro.jsx"));
-const Settings = lazy(() => import("./features/settings/pages/Settings.jsx"));
-const MyProfile = lazy(() => import("./features/profile/pages/MyProfile.jsx"));
-const UserProfile = lazy(() =>
-  import("./features/profile/pages/UserProfile.jsx")
-);
-const Explorer = lazy(() => import("./features/explore/Explorer.jsx"));
-const ProDashboard = lazy(() =>
-  import("./features/pro/pages/ProDashboard.jsx")
-);
+// === Lazy imports ===
+const Home = lazy(() => import("./features/home/pages/Home"));
+const Login = lazy(() => import("./features/auth/pages/Login"));
+const Register = lazy(() => import("./features/auth/pages/Register"));
+const Landing = lazy(() => import("./features/home/pages/Landing"));
+const RegisterPro = lazy(() => import("./features/auth/pages/RegisterPro"));
+const Settings = lazy(() => import("./features/settings/pages/Settings"));
+const MyProfile = lazy(() => import("./features/profile/pages/MyProfile"));
+const UserProfile = lazy(() => import("./features/profile/pages/UserProfile"));
+const Explorer = lazy(() => import("./features/explore/Explorer"));
+const ProDashboard = lazy(() => import("./features/pro/pages/ProDashboard"));
 const ReservationsPro = lazy(() =>
-  import("./features/pro/pages/ReservationsPro.jsx")
+  import("./features/pro/pages/ReservationsPro")
 );
-const ServicesPro = lazy(() => import("./features/pro/pages/ServicesPro.jsx"));
+const ServicesPro = lazy(() => import("./features/pro/pages/ServicesPro"));
 const DisponibilitesPro = lazy(() =>
-  import("./features/pro/pages/DisponibilitesPro.jsx")
+  import("./features/pro/pages/DisponibilitesPro")
 );
 const MesRendezVous = lazy(() =>
-  import("./features/client/pages/MesRendezVous.jsx")
+  import("./features/client/pages/MesRendezVous")
 );
-const Suivis = lazy(() => import("./features/client/pages/Suivis.jsx"));
-
+const Suivis = lazy(() => import("./features/client/pages/Suivis"));
 const MentionsLegales = lazy(() =>
-  import("./features/legal/pages/MentionsLegales.jsx")
+  import("./features/legal/pages/MentionsLegales")
 );
 const PolitiqueConfidentialite = lazy(() =>
-  import("./features/legal/pages/PolitiqueConfidentialite.jsx")
+  import("./features/legal/pages/PolitiqueConfidentialite")
 );
+const CGU = lazy(() => import("./features/legal/pages/CGU"));
 
-const CGU = lazy(() => import("./features/legal/pages/CGU.jsx"));
+// === Guards ===
 function ProtectedRoute({ children }) {
   const { user, loading } = useContext(AuthContext);
   if (loading) return null;
-  return user ? children : <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  return children;
 }
 
 function PublicRoute({ children }) {
@@ -61,6 +59,7 @@ function HomeGateway() {
   );
 }
 
+// === Routes ===
 export default function AppRoutes() {
   return (
     <Suspense
@@ -70,6 +69,8 @@ export default function AppRoutes() {
     >
       <Routes>
         <Route path="/" element={<Landing />} />
+
+        {/* Auth */}
         <Route
           path="/login"
           element={
@@ -94,14 +95,18 @@ export default function AppRoutes() {
             </PublicRoute>
           }
         />
+
+        {/* Upgrade Pro */}
         <Route
           path="/upgrade-pro"
           element={
             <ProtectedRoute>
-              <RegisterPro />
+              <UpgradeProRoute />
             </ProtectedRoute>
           }
         />
+
+        {/* Pages principales */}
         <Route
           path="/explore"
           element={
@@ -134,6 +139,8 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        {/* Espace Pro */}
         <Route
           path="/pro/dashboard"
           element={
@@ -174,6 +181,8 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        {/* Espace Client */}
         <Route
           path="/mes-rendez-vous"
           element={
@@ -240,6 +249,8 @@ export default function AppRoutes() {
             </Layout>
           }
         />
+
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

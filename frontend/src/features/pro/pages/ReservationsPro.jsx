@@ -5,7 +5,7 @@ import {
   updateReservationStatus,
 } from "../../../api/pro/pro.reservations.js";
 import ReservationCardPro from "@/features/pro/components/reservations/ReservationCardPro";
-import AlertMessage from "../../../components/feedback/AlertMessage.jsx";
+import AlertMessage from "../../../components/feedback/AlertMessage";
 import Seo from "@/components/seo/Seo";
 
 export default function ReservationsPro() {

@@ -1,4 +1,4 @@
-﻿import { useState, useContext, useMemo } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../../../context/AuthContextBase";
 import httpClient from "../../../api/http/httpClient";
@@ -19,17 +19,15 @@ import {
   messages,
 } from "../../../utils/validators";
 import Seo from "@/components/seo/Seo";
-import { upgradeUserToPro } from "../../../api/auth/account.service";
 
 export default function RegisterPro() {
-  const { user, handleRegister, updateUser } = useContext(AuthContext);
+  const { handleRegister } = React.useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const upgrading = useMemo(() => !!user && user.role !== "pro", [user]);
   const prefill = location.state?.prefill || {};
 
-  // --- Ã‰tats du compte utilisateur ---
+  // --- États du compte utilisateur ---
   const [account, setAccount] = useState({
     name: sanitizeName(prefill.name || ""),
     email: sanitizeInput(prefill.email || ""),
@@ -44,7 +42,7 @@ export default function RegisterPro() {
   const [step, setStep] = useState(1);
   const [consentGiven, setConsentGiven] = useState(false);
 
-  // --- Ã‰tats liÃ©s Ã  l'activitÃ© professionnelle ---
+  // --- États liés à l'activité professionnelle ---
   const [activityType, setActivityType] = useState("");
   const [salonName, setSalonName] = useState("");
   const [freelanceName, setFreelanceName] = useState("");
@@ -64,17 +62,15 @@ export default function RegisterPro() {
   // --- Validation SIRET ---
   const siretIsValid = (val) => /^[0-9]{14}$/.test(String(val || "").trim());
 
-  // --- Validation des Ã©tapes ---
+  // --- Validation des étapes ---
   const canGoNext = () => {
-    if (!upgrading) {
-      if (
-        !validateName(account.name) ||
-        !validateEmail(account.email) ||
-        !validatePassword(account.password) ||
-        account.password !== account.confirmPassword
-      )
-        return false;
-    }
+    if (
+      !validateName(account.name) ||
+      !validateEmail(account.email) ||
+      !validatePassword(account.password) ||
+      account.password !== account.confirmPassword
+    )
+      return false;
 
     switch (step) {
       case 1:
@@ -146,21 +142,19 @@ export default function RegisterPro() {
     }
   };
 
-  // --- Soumission du formulaire Pro ---
+  // --- Soumission du formulaire ---
   const submitPro = async () => {
     setFormError("");
     setFormSuccess("");
 
-    if (!upgrading) {
-      if (
-        !validateName(account.name) ||
-        !validateEmail(account.email) ||
-        !validatePassword(account.password) ||
-        account.password !== account.confirmPassword
-      ) {
-        setFormError("Veuillez vÃ©rifier les informations du compte.");
-        return;
-      }
+    if (
+      !validateName(account.name) ||
+      !validateEmail(account.email) ||
+      !validatePassword(account.password) ||
+      account.password !== account.confirmPassword
+    ) {
+      setFormError("Veuillez vérifier les informations du compte.");
+      return;
     }
 
     if (!siretIsValid(siret)) {
@@ -190,36 +184,7 @@ export default function RegisterPro() {
       experience,
     };
 
-    console.log("upgradeUserToPro:", upgradeUserToPro);
-    console.log("upgradeUserToPro:", upgradeUserToPro);
-
     try {
-      if (upgrading) {
-        // Upgrade du compte vers pro
-        const updatedUser = await upgradeUserToPro(proPayload);
-        updateUser(updatedUser);
-
-        // RafraÃ®chir les infos du compte pour recharger le rÃ´le et le token
-        try {
-          const me = await httpClient.get("/auth/me");
-          if (me?.data) {
-            localStorage.setItem("user", JSON.stringify(me.data));
-            updateUser(me.data);
-          }
-        } catch (refreshErr) {
-          console.warn("Erreur lors du refresh aprÃ¨s upgrade :", refreshErr);
-        }
-
-        // Message de succÃ¨s + reload global (pour recharger les routes /pro)
-        setFormSuccess("Votre compte est maintenant professionnel.");
-        setTimeout(() => {
-          window.location.reload(); // recharge lâ€™app avec le rÃ´le mis Ã  jour
-        }, 1200);
-
-        return;
-      }
-
-      // --- Cas inscription pro directe ---
       const payload = {
         name: account.name.trim(),
         email: account.email.trim(),
@@ -230,28 +195,20 @@ export default function RegisterPro() {
       };
 
       await handleRegister(payload);
-      setFormSuccess("Inscription rÃ©ussie ! Vous allez Ãªtre redirigÃ©...");
+      setFormSuccess("Inscription réussie ! Vous allez être redirigé...");
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
-      console.error("Erreur REGISTER/UPGRADE :", err?.response?.data || err);
-
-      if (!upgrading) {
-        const backendMessage = err?.response?.data?.message;
-        if (backendMessage?.toLowerCase().includes("email")) {
-          setEmailError("Cet email est dÃ©jÃ  utilisÃ©.");
-          return;
-        }
+      console.error("Erreur REGISTER PRO :", err?.response?.data || err);
+      const backendMessage = err?.response?.data?.message;
+      if (backendMessage?.toLowerCase().includes("email")) {
+        setEmailError("Cet email est déjà utilisé.");
+        return;
       }
-
-      setFormError(
-        upgrading
-          ? "Impossible de passer le compte en professionnel."
-          : "Erreur lors de l'inscription pro."
-      );
+      setFormError("Erreur lors de l'inscription pro.");
     }
   };
 
-  // --- Ã‰tat de succÃ¨s ---
+  // --- État de succès ---
   if (formSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -259,7 +216,7 @@ export default function RegisterPro() {
           <p className="text-lg font-semibold mb-4">{formSuccess}</p>
           <div className="flex items-center justify-center space-x-2 text-gray-600">
             <span>Redirection en cours...</span>
-            <span className="animate-pulse">â³</span>
+            <span className="animate-pulse">⏳</span>
           </div>
         </div>
       </div>
@@ -270,8 +227,8 @@ export default function RegisterPro() {
   return (
     <>
       <Seo
-        title="CrÃ©er un compte professionnel"
-        description="CrÃ©ez votre compte BeautyConnect Pro pour gÃ©rer vos services, rÃ©servations et visibilitÃ© en ligne."
+        title="Créer un compte professionnel"
+        description="Créez votre compte BeautyConnect Pro pour gérer vos services, réservations et visibilité en ligne."
       />
       <div className="min-h-screen bg-gray-50 flex flex-col relative">
         <div className="absolute top-4 right-6">
@@ -279,144 +236,126 @@ export default function RegisterPro() {
             to="/home"
             className="border border-blue-600 text-blue-600 px-4 py-2 text-sm rounded-lg hover:bg-blue-600 hover:text-white transition"
           >
-            AccÃ©der au site
+            Accéder au site
           </Link>
         </div>
 
         <div className="flex flex-1 items-center justify-center px-6 py-10">
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Bloc gauche : crÃ©ation de compte */}
-            {!upgrading && (
-              <div className="lg:col-span-1">
-                <div className="bg-white border border-gray-200 rounded-xl shadow-md p-6">
-                  <h2 className="text-xl font-semibold mb-4">
-                    CrÃ©ez votre compte professionnel
-                  </h2>
-                  {emailError && (
-                    <AlertMessage type="error" message={emailError} />
-                  )}
-                  <div className="space-y-4">
-                    {/* Nom / prÃ©nom */}
-                    <div>
-                      <label
-                        htmlFor="accountName"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Nom / PrÃ©nom
-                      </label>
-                      <input
-                        id="accountName"
-                        type="text"
-                        value={account.name}
-                        onChange={(e) =>
-                          handleAccountChange("name", e.target.value)
-                        }
-                        className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200"
-                        required
-                      />
-                    </div>
+            {/* Bloc gauche : création de compte */}
+            <div className="lg:col-span-1">
+              <div className="bg-white border border-gray-200 rounded-xl shadow-md p-6">
+                <h2 className="text-xl font-semibold mb-4">
+                  Créez votre compte professionnel
+                </h2>
+                {emailError && (
+                  <AlertMessage type="error" message={emailError} />
+                )}
+                <div className="space-y-4">
+                  {/* Nom / prénom */}
+                  <div>
+                    <label
+                      htmlFor="accountName"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Nom / Prénom
+                    </label>
+                    <input
+                      id="accountName"
+                      type="text"
+                      value={account.name}
+                      onChange={(e) =>
+                        handleAccountChange("name", e.target.value)
+                      }
+                      className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200"
+                      required
+                    />
+                  </div>
 
-                    {/* Email */}
-                    <div>
-                      <label
-                        htmlFor="accountEmail"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Email
-                      </label>
-                      <input
-                        id="accountEmail"
-                        type="email"
-                        value={account.email}
-                        onChange={(e) =>
-                          handleAccountChange("email", e.target.value)
-                        }
-                        className={`w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200 ${
-                          emailError ? "border-red-500" : ""
-                        }`}
-                        required
-                      />
-                    </div>
+                  {/* Email */}
+                  <div>
+                    <label
+                      htmlFor="accountEmail"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Email
+                    </label>
+                    <input
+                      id="accountEmail"
+                      type="email"
+                      value={account.email}
+                      onChange={(e) =>
+                        handleAccountChange("email", e.target.value)
+                      }
+                      className={`w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200 ${
+                        emailError ? "border-red-500" : ""
+                      }`}
+                      required
+                    />
+                  </div>
 
-                    {/* Mot de passe + force */}
-                    <div>
-                      <label
-                        htmlFor="accountPassword"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Mot de passe
-                      </label>
-                      <input
-                        id="accountPassword"
-                        type="password"
-                        value={account.password}
-                        onChange={(e) =>
-                          handleAccountChange("password", e.target.value)
-                        }
-                        className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200"
-                        required
-                      />
+                  {/* Mot de passe + force */}
+                  <div>
+                    <label
+                      htmlFor="accountPassword"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Mot de passe
+                    </label>
+                    <input
+                      id="accountPassword"
+                      type="password"
+                      value={account.password}
+                      onChange={(e) =>
+                        handleAccountChange("password", e.target.value)
+                      }
+                      className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200"
+                      required
+                    />
+                    {account.password && (
+                      <PasswordStrength password={account.password} />
+                    )}
+                  </div>
 
-                      {account.password && (
-                        <PasswordStrength password={account.password} />
-                      )}
-
-                      {formError &&
-                        formError.toLowerCase().includes("mot de passe") && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {formError}
-                          </p>
-                        )}
-                    </div>
-
-                    {/* Confirmation du mot de passe */}
-                    <div>
-                      <label
-                        htmlFor="confirmPassword"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Confirmer le mot de passe
-                      </label>
-                      <input
-                        id="confirmPassword"
-                        type="password"
-                        value={account.confirmPassword}
-                        onChange={(e) =>
-                          handleAccountChange("confirmPassword", e.target.value)
-                        }
-                        className={`w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200 ${
-                          confirmError ? "border-red-500" : ""
-                        }`}
-                        required
-                      />
-                      {confirmError && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {confirmError}
-                        </p>
-                      )}
-                    </div>
+                  {/* Confirmation */}
+                  <div>
+                    <label
+                      htmlFor="confirmPassword"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Confirmer le mot de passe
+                    </label>
+                    <input
+                      id="confirmPassword"
+                      type="password"
+                      value={account.confirmPassword}
+                      onChange={(e) =>
+                        handleAccountChange("confirmPassword", e.target.value)
+                      }
+                      className={`w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200 ${
+                        confirmError ? "border-red-500" : ""
+                      }`}
+                      required
+                    />
+                    {confirmError && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {confirmError}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* Bloc droit : Ã©tapes pro */}
-            <div className={upgrading ? "lg:col-span-3" : "lg:col-span-2"}>
+            {/* Bloc droit : étapes pro */}
+            <div className="lg:col-span-2">
               <div className="bg-white border border-gray-200 rounded-xl shadow-md p-6">
-                {upgrading && (
-                  <div className="mb-4">
-                    <AlertMessage type="info">
-                      Vous êtes connecté en tant que <b>{user?.email}</b>. En
-                      validant, votre compte sera converti en professionnel.
-                    </AlertMessage>
-                  </div>
-                )}
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold">
                     Informations professionnelles
                   </h3>
                   <div className="text-sm text-gray-600">
-                    Ã‰tape <b>{step}</b> / 5
+                    Étape <b>{step}</b> / 5
                   </div>
                 </div>
 
@@ -426,58 +365,34 @@ export default function RegisterPro() {
                   {step === 1 && (
                     <Step1ActivityType
                       activityType={activityType}
-                      setActivityType={(v) => {
-                        setActivityType(v);
-                        setFormError("");
-                      }}
+                      setActivityType={setActivityType}
                     />
                   )}
                   {step === 2 && (
                     <Step2Type
                       activityType={activityType}
                       salonName={salonName}
-                      setSalonName={(v) => {
-                        setSalonName(v);
-                        setFormError("");
-                      }}
+                      setSalonName={setSalonName}
                       freelanceName={freelanceName}
-                      setFreelanceName={(v) => {
-                        setFreelanceName(v);
-                        setFormError("");
-                      }}
+                      setFreelanceName={setFreelanceName}
                       freelanceAtHome={freelanceAtHome}
-                      setFreelanceAtHome={(v) => {
-                        setFreelanceAtHome(v);
-                        setFormError("");
-                      }}
+                      setFreelanceAtHome={setFreelanceAtHome}
                       freelanceOutdoor={freelanceOutdoor}
-                      setFreelanceOutdoor={(v) => {
-                        setFreelanceOutdoor(v);
-                        setFormError("");
-                      }}
+                      setFreelanceOutdoor={setFreelanceOutdoor}
                       locationField={locationField}
-                      setLocationField={(v) => {
-                        setLocationField(v);
-                        setFormError("");
-                      }}
+                      setLocationField={setLocationField}
                     />
                   )}
                   {step === 3 && (
                     <Step3Experience
                       experience={experience}
-                      setExperience={(v) => {
-                        setExperience(v);
-                        setFormError("");
-                      }}
+                      setExperience={setExperience}
                     />
                   )}
                   {step === 4 && (
                     <Step4Siret
                       siret={siret}
-                      setSiret={(v) => {
-                        setSiret(v);
-                        setFormError("");
-                      }}
+                      setSiret={setSiret}
                       helper="Votre SIRET doit contenir exactement 14 chiffres."
                       isValid={siretIsValid}
                     />
@@ -485,10 +400,7 @@ export default function RegisterPro() {
                   {step === 5 && (
                     <Step5Services
                       categories={categories}
-                      setCategories={(v) => {
-                        setCategories(v);
-                        setFormError("");
-                      }}
+                      setCategories={setCategories}
                     />
                   )}
                 </div>
@@ -522,65 +434,50 @@ export default function RegisterPro() {
                       </button>
                     ) : (
                       <div className="flex flex-col items-end space-y-4">
-                        {/* Consentement RGPD (affichÃ© uniquement si pas en upgrade) */}
-                        {!upgrading && (
-                          <div className="flex items-start text-sm">
-                            <input
-                              id="consentPro"
-                              type="checkbox"
-                              checked={consentGiven}
-                              onChange={(e) =>
-                                setConsentGiven(e.target.checked)
-                              }
-                              className="mt-1 mr-2 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                              required
-                            />
-                            <label
-                              htmlFor="consentPro"
-                              className="text-gray-700"
+                        <div className="flex items-start text-sm">
+                          <input
+                            id="consentPro"
+                            type="checkbox"
+                            checked={consentGiven}
+                            onChange={(e) => setConsentGiven(e.target.checked)}
+                            className="mt-1 mr-2 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                            required
+                          />
+                          <label htmlFor="consentPro" className="text-gray-700">
+                            J’ai lu et j’accepte la{" "}
+                            <Link
+                              to="/legal/politique-de-confidentialite"
+                              className="text-blue-600 hover:underline"
                             >
-                              Jâ€™ai lu et jâ€™accepte la{" "}
-                              <Link
-                                to="/legal/politique-de-confidentialite"
-                                className="text-blue-600 hover:underline focus-visible:outline-2 focus-visible:outline-blue-500 rounded-sm"
-                              >
-                                politique de confidentialitÃ©
-                              </Link>{" "}
-                              de BeautyConnect.
-                            </label>
-                          </div>
-                        )}
+                              politique de confidentialité
+                            </Link>{" "}
+                            de BeautyConnect.
+                          </label>
+                        </div>
 
-                        {/* Bouton final */}
                         <button
                           type="button"
                           onClick={submitPro}
-                          disabled={
-                            !canGoNext() || (!upgrading && !consentGiven)
-                          }
+                          disabled={!canGoNext() || !consentGiven}
                           className={`px-4 py-2 rounded ${
-                            canGoNext() && (upgrading || consentGiven)
+                            canGoNext() && consentGiven
                               ? "bg-black text-white hover:bg-gray-900 transition"
                               : "bg-gray-300 text-gray-600 cursor-not-allowed"
                           }`}
                         >
-                          {upgrading
-                            ? "Valider mon passage en Pro"
-                            : "CrÃ©er mon compte"}
+                          Créer mon compte
                         </button>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {!upgrading && (
-                  <div className="text-sm text-center mt-6">
-                    <span className="text-gray-600">DÃ©jÃ  un compte ? </span>
-                    <Link to="/login" className="text-blue-600 hover:underline">
-                      Se connecter
-                    </Link>
-                  </div>
-                )}
+                <div className="text-sm text-center mt-6">
+                  <span className="text-gray-600">Déjà un compte ? </span>
+                  <Link to="/login" className="text-blue-600 hover:underline">
+                    Se connecter
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -589,4 +486,3 @@ export default function RegisterPro() {
     </>
   );
 }
-

@@ -1,49 +1,47 @@
 services:
   # ============================
-  # FRONTEND (mode développement)
+  # FRONTEND (Build + Serve)
   # ============================
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    command: npm run dev -- --host
+      - "80:80"
     depends_on:
       - backend
-    environment:
-      - VITE_API_URL=http://localhost:5000/api
     networks:
       - beautyconnect_net
+    restart: always
 
   # ============================
-  # BACKEND (Node.js / Express)
+  # BACKEND (Production)
   # ============================
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - "8080:5000"
     env_file:
-      - ./backend/.env
+      - ./backend/.env.production
     environment:
-      - NODE_ENV=development
-      - MONGO_URL=mongodb://mongo:27017/beautyconnect
-    command: npm run dev
+      - NODE_ENV=production
+      - MONGO_URL=mongodb://beautyconnect_app:StrongPassword123!@mongo:27017/beautyconnect?authSource=admin
+    command: node server.js
     depends_on:
       - mongo
     networks:
       - beautyconnect_net
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
 
   # ============================
-  # MONGO DATABASE
+  # MONGO DATABASE (avec auth)
   # ============================
   mongo:
     image: mongo:6
@@ -51,6 +49,8 @@ services:
     ports:
       - "27017:27017"
     environment:
+      - MONGO_INITDB_ROOT_USERNAME=beautyconnect_app
+      - MONGO_INITDB_ROOT_PASSWORD=StrongPassword123!
       - MONGO_INITDB_DATABASE=beautyconnect
     volumes:
       - mongo_data:/data/db
@@ -59,7 +59,7 @@ services:
       - beautyconnect_net
 
   # ============================
-  # BACKUP AUTOMATIQUE MONGO
+  # MONGO BACKUP (automatique)
   # ============================
   mongo-backup:
     image: alpine:3.19
@@ -76,31 +76,6 @@ services:
       sh -c "apk add --no-cache mongodb-tools &&
              echo '0 2 * * * /backup/backup.sh >> /var/log/cron.log 2>&1' > /etc/crontabs/root &&
              crond -f -d 8"
-
-  # ============================
-  # BACKEND (mode production)
-  # ============================
-  backend_prod:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "5001:5000"
-    env_file:
-      - ./backend/.env
-    environment:
-      - NODE_ENV=production
-      - MONGO_URL=mongodb://mongo:27017/beautyconnect
-    command: node server.js
-    depends_on:
-      - mongo
-    networks:
-      - beautyconnect_net
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 512M
 
 # ============================
 # PERSISTENCE & NETWORK

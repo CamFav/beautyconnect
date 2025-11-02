@@ -3,9 +3,10 @@ import { useAuth } from "../../context/AuthContextBase";
 import { getPros, followUser } from "../../api/users/user.service";
 import SearchBar from "@/features/explore/components/SearchBar";
 import FiltersBar from "@/features/explore/components/FiltersBar";
+import LocationFilter from "@/features/feed/components/LocationFilter";
 import ProCard from "@/features/explore/components/ProCard";
 import AlertMessage from "../../components/feedback/AlertMessage";
-import Seo from "@/components/seo/Seo.jsx";
+import Seo from "@/components/seo/Seo";
 
 export default function Explorer() {
   const { token, user: currentUser } = useAuth();
@@ -14,6 +15,13 @@ export default function Explorer() {
   const [q, setQ] = useState("");
   const [active, setActive] = useState("Tous");
   const [alert, setAlert] = useState(null);
+
+  // --- Localisation ---
+  const [locationFilter, setLocationFilter] = useState("all");
+  const [typedCity, setTypedCity] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [shouldFilter, setShouldFilter] = useState(false);
 
   // --- Auto disparition du message ---
   useEffect(() => {
@@ -27,7 +35,33 @@ export default function Explorer() {
   const sanitize = (val) =>
     typeof val === "string" ? val.trim().replace(/[<>]/g, "") : "";
 
-  // Chargement des pros
+  // --- Suggestions de villes (API française) ---
+  const fetchCitySuggestions = async (query) => {
+    if (!query || query.length < 3) {
+      setCitySuggestions([]);
+      return;
+    }
+    try {
+      const res = await fetch(
+        `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
+          query
+        )}&type=municipality&limit=5`
+      );
+      const data = await res.json();
+      const suggestions = (data?.features || []).map((item) =>
+        sanitize(item.properties.city)
+      );
+      setCitySuggestions(suggestions);
+    } catch (error) {
+      console.error("Erreur API ville :", error);
+      setAlert({
+        type: "warning",
+        message: "Impossible de charger les suggestions de ville.",
+      });
+    }
+  };
+
+  // --- Chargement des pros ---
   useEffect(() => {
     const fetchPros = async () => {
       setLoading(true);
@@ -58,9 +92,10 @@ export default function Explorer() {
     fetchPros();
   }, []);
 
-  // Filtrage
+  // --- Filtrage ---
   const filtered = useMemo(() => {
     const text = q.toLowerCase();
+    const citySanitized = sanitize(selectedCity).toLowerCase();
 
     return pros.filter((pro) => {
       const businessName = sanitize(
@@ -86,11 +121,17 @@ export default function Explorer() {
               .map((c) => c.toLowerCase())
               .includes(active.toLowerCase());
 
-      return okText && okCategory;
-    });
-  }, [pros, q, active]);
+      const okCity =
+        locationFilter === "city" && shouldFilter && citySanitized
+          ? sanitize(pro.proProfile?.location?.city || "").toLowerCase() ===
+            citySanitized
+          : true;
 
-  // Suivre / Ne plus suivre
+      return okText && okCategory && okCity;
+    });
+  }, [pros, q, active, locationFilter, selectedCity, shouldFilter]);
+
+  // --- Suivre / Ne plus suivre ---
   const handleFollow = async (proId) => {
     if (!token) {
       setAlert({
@@ -148,8 +189,24 @@ export default function Explorer() {
           <p className="text-gray-600">
             Découvrez les meilleurs prestataires près de chez vous.
           </p>
+
+          {/* 🔍 Barre de recherche + filtres */}
           <SearchBar value={q} onChange={setQ} />
           <FiltersBar active={active} onChange={setActive} />
+
+          {/* 🌍 Filtre de localisation */}
+          <LocationFilter
+            locationFilter={locationFilter}
+            setLocationFilter={setLocationFilter}
+            typedCity={typedCity}
+            setTypedCity={setTypedCity}
+            selectedCity={selectedCity}
+            setSelectedCity={setSelectedCity}
+            citySuggestions={citySuggestions}
+            setCitySuggestions={setCitySuggestions}
+            fetchCitySuggestions={fetchCitySuggestions}
+            setShouldFilter={setShouldFilter}
+          />
         </header>
 
         {loading ? (

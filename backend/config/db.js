@@ -1,20 +1,23 @@
 const mongoose = require("mongoose");
 
 const connectDB = async (retries = 5, delay = 5000) => {
-  const mongoURI = process.env.MONGO_URL;
+  const mongoURI =
+    process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL;
   if (!mongoURI) {
-    console.error("MONGO_URL non défini dans .env");
+    console.error("MONGODB_URI non défini dans .env");
     process.exit(1);
   }
 
   try {
     await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 10000, // 10s max pour tenter la connexion
-      socketTimeoutMS: 45000, // 45s avant coupure socket
-      maxPoolSize: 10, // contrôle charge
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
       connectTimeoutMS: 10000,
-      family: 4, // IPv4
+      family: 4,
+      autoIndex: process.env.NODE_ENV !== "production",
     });
+
     if (process.env.NODE_ENV !== "production") {
       console.log("MongoDB connecté avec succès");
     }
@@ -33,7 +36,6 @@ const connectDB = async (retries = 5, delay = 5000) => {
     }
   }
 
-  // Log d’état pour /api/health
   mongoose.connection.on("connected", () => console.log("[Mongo] connecté"));
   mongoose.connection.on("disconnected", () =>
     console.warn("[Mongo] déconnecté")

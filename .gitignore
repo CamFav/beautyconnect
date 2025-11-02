@@ -19,6 +19,7 @@ mongo_data/
 .env.local
 .env.test
 .env.production
+.env.development
 
 dist/login.json
 role.json

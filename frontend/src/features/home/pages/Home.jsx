@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { AuthContext } from "../../../context/AuthContextBase";
 import Feed from "../../feed/Feed";
 import ProDashboard from "../../pro/pages/ProDashboard";
-import Seo from "@/components/seo/Seo.jsx";
+import Seo from "@/components/seo/Seo";
 
 export default function Home() {
   const { user } = useContext(AuthContext);

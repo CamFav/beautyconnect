@@ -8,7 +8,7 @@ import PostList from "./components/PostList";
 import PostModal from "../../components/feedback/PostModal";
 import AlertMessage from "../../components/feedback/AlertMessage";
 import { toast } from "react-hot-toast";
-import Seo from "@/components/seo/Seo.jsx";
+import Seo from "@/components/seo/Seo";
 
 /**
  * Feed – Flux principal des publications

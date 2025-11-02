@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../../context/AuthContextBase";
 import { getPros, followUser } from "../../../api/users/user.service";
 import ProCard from "@/features/explore/components/ProCard";
-import Seo from "@/components/seo/Seo.jsx";
+import Seo from "@/components/seo/Seo";
 
 export default function Suivis() {
   const { user: currentUser, token } = useAuth();

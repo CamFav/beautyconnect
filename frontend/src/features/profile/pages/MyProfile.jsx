@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { AuthContext } from "../../../context/AuthContextBase";
 import ClientProfileView from "@/features/profile/components/client/ClientProfileView";
 import ProProfileView from "@/features/profile/components/pro/ProProfileView";
-import Seo from "@/components/seo/Seo.jsx";
+import Seo from "@/components/seo/Seo";
 
 export default function MyProfile() {
   const { user } = useContext(AuthContext);

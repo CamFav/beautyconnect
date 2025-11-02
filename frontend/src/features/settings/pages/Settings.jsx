@@ -1,9 +1,9 @@
 import { useContext, useMemo, useState } from "react";
 import { AuthContext } from "../../../context/AuthContextBase";
-import AccountSettings from "../components/AccountSettings.jsx";
-import SecuritySettings from "../components/SecuritySettings.jsx";
-import ProSettingsSection from "../components/ProSettingsSection.jsx";
-import Seo from "@/components/seo/Seo.jsx";
+import AccountSettings from "../components/AccountSettings";
+import SecuritySettings from "../components/SecuritySettings";
+import ProSettingsSection from "../components/ProSettingsSection";
+import Seo from "@/components/seo/Seo";
 
 export default function Settings() {
   const { user, token, setUser } = useContext(AuthContext);

@@ -1,0 +1,44 @@
+# ============================
+# 1. BUILD STAGE
+# ============================
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Copie des fichiers nécessaires
+COPY package*.json ./
+RUN npm ci --legacy-peer-deps
+
+# Copie du reste du frontend
+COPY . .
+
+# Injecte la variable Render dans le build
+ARG VITE_API_URL=https://beautyconnect-backend-pquy.onrender.com/api
+ENV VITE_API_URL=$VITE_API_URL
+
+# Build Vite
+RUN echo "Building with VITE_API_URL=$VITE_API_URL" && npm run build
+
+# Vérification
+RUN ls -l /app/dist
+
+
+# ============================
+# 2. NGINX STAGE
+# ============================
+FROM nginx:1.25-alpine
+
+# Supprime la config par défaut
+RUN rm -rf /etc/nginx/conf.d/default.conf
+
+# Copie ta config Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copie du build vers nginx
+COPY --from=build /app/dist/. /usr/share/nginx/html
+
+# Vérification
+RUN ls -l /usr/share/nginx/html
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

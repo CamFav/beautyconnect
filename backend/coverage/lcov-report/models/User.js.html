@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>13/13</span>
+                <span class='fraction'>20/20</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>12/12</span>
+                <span class='fraction'>19/19</span>
             </div>
         
             
@@ -175,16 +175,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -264,21 +255,32 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">16x</span>
-<span class="cline-any cline-yes">103x</span>
-<span class="cline-any cline-yes">84x</span>
-<span class="cline-any cline-yes">84x</span>
-<span class="cline-any cline-yes">84x</span>
+<span class="cline-any cline-yes">60x</span>
+<span class="cline-any cline-yes">48x</span>
+<span class="cline-any cline-yes">48x</span>
+<span class="cline-any cline-yes">48x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">46x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">16x</span>
-<span class="cline-any cline-yes">78x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+&nbsp;
+const SALT_WORK_FACTOR = 10;
 &nbsp;
 const UserSchema = new mongoose.Schema(
   {
@@ -289,12 +291,17 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      match: [/^\S+@\S+\.\S+$/, "Email invalide"],
     },
     password: { type: String, required: true, select: false },
 &nbsp;
-    phone: { type: String, default: "", trim: true },
+    phone: {
+      type: String,
+      default: "",
+      trim: true,
+      match: [/^\+?\d{6,15}$/, "Numéro de téléphone invalide"],
+    },
 &nbsp;
-    // Localisation générale
     location: {
       city: { type: String, default: "", trim: true },
       country: { type: String, default: "", trim: true },
@@ -302,10 +309,7 @@ const UserSchema = new mongoose.Schema(
       longitude: { type: Number, default: null },
     },
 &nbsp;
-    // Avatar côté client
     avatarClient: { type: String, default: "" },
-&nbsp;
-    // Avatar côté pro
     avatarPro: { type: String, default: "" },
 &nbsp;
     role: {
@@ -313,15 +317,12 @@ const UserSchema = new mongoose.Schema(
       enum: ["client", "pro"],
       default: "client",
     },
-&nbsp;
-    // Rôle actif actuel
     activeRole: {
       type: String,
       enum: ["client", "pro"],
       default: "client",
     },
 &nbsp;
-    // Partie dédiée au profil pro
     proProfile: {
       businessName: { type: String, default: "", trim: true },
       siret: { type: String, default: "", trim: true },
@@ -336,11 +337,7 @@ const UserSchema = new mongoose.Schema(
         enum: ["&lt;1 an", "1 an", "2+ ans", "5+ ans"],
         default: "&lt;1 an",
       },
-&nbsp;
-      // Image de couverture
       headerImage: { type: String, default: "" },
-&nbsp;
-      // Localisation du profil pro
       location: {
         city: { type: String, default: "", trim: true },
         country: { type: String, default: "", trim: true },
@@ -348,42 +345,45 @@ const UserSchema = new mongoose.Schema(
         latitude: { type: Number, default: null },
         longitude: { type: Number, default: null },
       },
-&nbsp;
       categories: {
-        type: [
-          {
-            type: String,
-            enum: ["Coiffure", "Esthétique", "Tatouage", "Maquillage"],
-          },
-        ],
+        type: [String],
+        enum: ["Coiffure", "Esthétique", "Tatouage", "Maquillage"],
         default: [],
       },
     },
 &nbsp;
-    // Système d'abonnements
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   {
     timestamps: true,
+    autoIndex: process.env.NODE_ENV !== "production",
   }
 );
 &nbsp;
-// Hash du mot de passe avant sauvegarde
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  const salt = await bcrypt.genSalt(10);
+  const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 &nbsp;
-// Méthode pour comparer le mot de passe
 UserSchema.methods.comparePassword = function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 &nbsp;
-const User = mongoose.model("User", UserSchema);
-module.exports = User;
+UserSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+  delete obj.password;
+  delete obj.__v;
+  return obj;
+};
+&nbsp;
+// Indexation utile pour recherches
+UserSchema.index({ "proProfile.location.city": 1 });
+UserSchema.index({ role: 1 });
+&nbsp;
+module.exports = mongoose.model("User", UserSchema);
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -391,7 +391,7 @@ module.exports = User;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-25T01:32:17.042Z
+                at 2025-10-29T03:36:29.669Z
             </div>
         <script src="../prettify.js"></script>
         <script>

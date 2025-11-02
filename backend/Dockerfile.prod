@@ -1,0 +1,42 @@
+# ==========================================
+# Étape 1 : Build minimal
+# ==========================================
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Copie uniquement les fichiers essentiels
+COPY package*.json ./
+
+# Installe uniquement les dépendances de production
+RUN npm ci --only=production
+
+# Copie du code source
+COPY . .
+
+# ==========================================
+# Étape 2 : Exécution (production)
+# ==========================================
+FROM node:20-alpine AS production
+
+WORKDIR /app
+
+# Copie des fichiers nécessaires depuis le build
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/server.js ./server.js
+COPY --from=build /app/app.js ./app.js
+COPY --from=build /app/config ./config
+COPY --from=build /app/models ./models
+COPY --from=build /app/routes ./routes
+COPY --from=build /app/utils ./utils
+
+# Variables d’environnement
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Port exposé
+EXPOSE 8080
+
+# Commande de lancement
+CMD ["node", "server.js"]

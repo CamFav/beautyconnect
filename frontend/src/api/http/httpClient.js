@@ -1,16 +1,16 @@
 import axios from "axios";
 import { toast } from "react-hot-toast";
 
-const base =
+const baseURL =
   import.meta.env.VITE_API_URL?.trim() || "http://localhost:5000/api";
 
-// Log clair pour le débogage environnemental
 console.log(
-  `%c[HTTP CLIENT] Base URL configurée : ${base}`,
+  `%c[HTTP CLIENT] Base URL configurée : ${baseURL}`,
   "color: #3b82f6; font-weight: bold;"
 );
+
 const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL,
   withCredentials: true,
 });
 

@@ -5,8 +5,7 @@ import { sanitizeInput } from "../../../utils/sanitize";
 import AlertMessage from "../../../components/feedback/AlertMessage";
 import { Calendar, Heart } from "lucide-react";
 import {
-  validateEmail,
-  validatePassword,
+  validateLoginForm,
   messages,
   mapApiErrors,
 } from "../../../utils/validators";
@@ -24,23 +23,33 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  /**
+   * Gestion du changement d'input
+   * On assainit uniquement l'email pour éviter d'effacer des caractères spéciaux du mot de passe
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: sanitizeInput(value) }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "email" ? sanitizeInput(value) : value,
+    }));
     setErrors({});
     setSubmitError("");
   };
 
+  /**
+   * Validation légère spécifique au login
+   * (Email valide + mot de passe non vide)
+   */
   const validateForm = () => {
-    const newErrors = {};
-    if (!validateEmail(formData.email)) newErrors.email = messages.email;
-    if (!validatePassword(formData.password))
-      newErrors.password = messages.password;
-
+    const newErrors = validateLoginForm(formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Soumission du formulaire de connexion
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;

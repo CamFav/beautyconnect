@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import Seo from "@/components/seo/Seo";
 
 export default function CGU() {
@@ -6,14 +7,14 @@ export default function CGU() {
 
   return (
     <>
-      {/* === Balises SEO === */}
+      {/* SEO */}
       <Seo
         title="Conditions Générales d’Utilisation | BeautyConnect"
         description="Consultez les Conditions Générales d’Utilisation (CGU) de BeautyConnect pour comprendre les règles applicables à l’usage du site et de ses services."
         robots="index,follow"
       />
 
-      {/* === Contenu principal accessible === */}
+      {/* Contenu principal */}
       <main
         id="main-content"
         role="main"
@@ -21,20 +22,25 @@ export default function CGU() {
         aria-label="Conditions Générales d’Utilisation"
         className="min-h-screen max-w-4xl mx-auto px-6 py-10 text-gray-800 leading-relaxed focus:outline-none relative"
       >
-        {/* === Bouton retour === */}
+        {/* Bouton retour */}
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-6 left-6 text-blue-600 hover:underline focus-visible:outline-2 focus-visible:outline-blue-500 rounded-sm"
+          className="absolute top-6 left-6 group inline-flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 shadow-sm"
+          aria-label="Revenir à la page précédente"
         >
-          ← Retour
+          <ArrowLeft
+            className="w-4 h-4 transition-transform group-hover:-translate-x-0.5"
+            aria-hidden="true"
+          />
+          Retour
         </button>
 
-        {/* === Titre principal === */}
+        {/* Titre */}
         <h1 className="text-3xl font-semibold mb-8 text-center">
           Conditions Générales d’Utilisation
         </h1>
 
-        {/* === Corps du texte === */}
+        {/* Corps */}
         <article className="space-y-5 text-sm sm:text-base">
           <p>
             Les présentes Conditions Générales d’Utilisation (ci-après « CGU »)

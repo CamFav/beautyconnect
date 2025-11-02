@@ -5,7 +5,7 @@ import ClientProfileView from "@/features/profile/components/client/ClientProfil
 import ProProfileView from "@/features/profile/components/pro/ProProfileView";
 import httpClient from "../../../api/http/httpClient";
 import { toast } from "react-hot-toast";
-import Seo from "@/components/seo/Seo.jsx";
+import Seo from "@/components/seo/Seo";
 
 export default function UserProfile() {
   const { id } = useParams();
