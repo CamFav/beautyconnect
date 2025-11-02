@@ -183,140 +183,140 @@ export default function UpgradeToPro() {
         title="Passer en compte professionnel"
         description="Convertissez votre compte BeautyConnect en compte Pro pour accéder à toutes les fonctionnalités professionnelles."
       />
-      <div className="min-h-screen bg-gray-50 flex flex-col relative">
-        <div className="flex flex-1 items-center justify-center px-6 py-10">
-          <div className="max-w-4xl w-full mb-6">
-            <AlertMessage type="info">
-              Vous êtes connecté en tant que <b>{user?.email}</b>. En validant,
-              votre compte sera converti en professionnel.
-            </AlertMessage>
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6 py-10">
+        {/* Message d'alerte en haut et centré */}
+        <div className="w-full max-w-4xl mb-6">
+          <AlertMessage type="info">
+            Vous êtes connecté en tant que <b>{user?.email}</b>. En validant,
+            votre compte sera converti en professionnel.
+          </AlertMessage>
+        </div>
+  
+        {/* Bloc principal centré */}
+        <div className="w-full max-w-4xl bg-white border border-gray-200 rounded-xl shadow-md p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold">
+              Passage au compte professionnel
+            </h3>
+            <div className="text-sm text-gray-600">
+              Étape <b>{step}</b> / 5
+            </div>
           </div>
-
-          <div className="max-w-4xl w-full bg-white border border-gray-200 rounded-xl shadow-md p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">
-                Passage au compte professionnel
-              </h3>
-              <div className="text-sm text-gray-600">
-                Étape <b>{step}</b> / 5
-              </div>
+  
+          {formError && <AlertMessage type="error" message={formError} />}
+  
+          <div className="space-y-6">
+            {step === 1 && (
+              <Step1ActivityType
+                activityType={activityType}
+                setActivityType={(v) => {
+                  setActivityType(v);
+                  setFormError("");
+                }}
+              />
+            )}
+            {step === 2 && (
+              <Step2Type
+                activityType={activityType}
+                salonName={salonName}
+                setSalonName={(v) => {
+                  setSalonName(v);
+                  setFormError("");
+                }}
+                freelanceName={freelanceName}
+                setFreelanceName={(v) => {
+                  setFreelanceName(v);
+                  setFormError("");
+                }}
+                freelanceAtHome={freelanceAtHome}
+                setFreelanceAtHome={(v) => {
+                  setFreelanceAtHome(v);
+                  setFormError("");
+                }}
+                freelanceOutdoor={freelanceOutdoor}
+                setFreelanceOutdoor={(v) => {
+                  setFreelanceOutdoor(v);
+                  setFormError("");
+                }}
+                locationField={locationField}
+                setLocationField={(v) => {
+                  setLocationField(v);
+                  setFormError("");
+                }}
+              />
+            )}
+            {step === 3 && (
+              <Step3Experience
+                experience={experience}
+                setExperience={(v) => {
+                  setExperience(v);
+                  setFormError("");
+                }}
+              />
+            )}
+            {step === 4 && (
+              <Step4Siret
+                siret={siret}
+                setSiret={(v) => {
+                  setSiret(v);
+                  setFormError("");
+                }}
+                helper="Votre SIRET doit contenir exactement 14 chiffres."
+                isValid={siretIsValid}
+              />
+            )}
+            {step === 5 && (
+              <Step5Services
+                categories={categories}
+                setCategories={(v) => {
+                  setCategories(v);
+                  setFormError("");
+                }}
+              />
+            )}
+          </div>
+  
+          {/* Navigation */}
+          <div className="mt-8 flex items-center justify-between">
+            <div>
+              {step > 1 && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
+                >
+                  Retour
+                </button>
+              )}
             </div>
-
-            {formError && <AlertMessage type="error" message={formError} />}
-
-            <div className="space-y-6">
-              {step === 1 && (
-                <Step1ActivityType
-                  activityType={activityType}
-                  setActivityType={(v) => {
-                    setActivityType(v);
-                    setFormError("");
-                  }}
-                />
+            <div>
+              {step < 5 ? (
+                <button
+                  type="button"
+                  onClick={onNext}
+                  disabled={!canGoNext()}
+                  className={`px-4 py-2 rounded ${
+                    canGoNext()
+                      ? "bg-blue-600 text-white hover:bg-blue-700 transition"
+                      : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  }`}
+                >
+                  Suivant
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={submitUpgrade}
+                  disabled={!canGoNext()}
+                  className={`px-4 py-2 rounded ${
+                    canGoNext()
+                      ? "bg-black text-white hover:bg-gray-900 transition"
+                      : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  }`}
+                >
+                  Valider mon passage en Pro
+                </button>
               )}
-              {step === 2 && (
-                <Step2Type
-                  activityType={activityType}
-                  salonName={salonName}
-                  setSalonName={(v) => {
-                    setSalonName(v);
-                    setFormError("");
-                  }}
-                  freelanceName={freelanceName}
-                  setFreelanceName={(v) => {
-                    setFreelanceName(v);
-                    setFormError("");
-                  }}
-                  freelanceAtHome={freelanceAtHome}
-                  setFreelanceAtHome={(v) => {
-                    setFreelanceAtHome(v);
-                    setFormError("");
-                  }}
-                  freelanceOutdoor={freelanceOutdoor}
-                  setFreelanceOutdoor={(v) => {
-                    setFreelanceOutdoor(v);
-                    setFormError("");
-                  }}
-                  locationField={locationField}
-                  setLocationField={(v) => {
-                    setLocationField(v);
-                    setFormError("");
-                  }}
-                />
-              )}
-              {step === 3 && (
-                <Step3Experience
-                  experience={experience}
-                  setExperience={(v) => {
-                    setExperience(v);
-                    setFormError("");
-                  }}
-                />
-              )}
-              {step === 4 && (
-                <Step4Siret
-                  siret={siret}
-                  setSiret={(v) => {
-                    setSiret(v);
-                    setFormError("");
-                  }}
-                  helper="Votre SIRET doit contenir exactement 14 chiffres."
-                  isValid={siretIsValid}
-                />
-              )}
-              {step === 5 && (
-                <Step5Services
-                  categories={categories}
-                  setCategories={(v) => {
-                    setCategories(v);
-                    setFormError("");
-                  }}
-                />
-              )}
-            </div>
-
-            {/* Navigation */}
-            <div className="mt-8 flex items-center justify-between">
-              <div>
-                {step > 1 && (
-                  <button
-                    type="button"
-                    onClick={onBack}
-                    className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
-                  >
-                    Retour
-                  </button>
-                )}
-              </div>
-              <div>
-                {step < 5 ? (
-                  <button
-                    type="button"
-                    onClick={onNext}
-                    disabled={!canGoNext()}
-                    className={`px-4 py-2 rounded ${
-                      canGoNext()
-                        ? "bg-blue-600 text-white hover:bg-blue-700 transition"
-                        : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                    }`}
-                  >
-                    Suivant
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={submitUpgrade}
-                    disabled={!canGoNext()}
-                    className={`px-4 py-2 rounded ${
-                      canGoNext()
-                        ? "bg-black text-white hover:bg-gray-900 transition"
-                        : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                    }`}
-                  >
-                    Valider mon passage en Pro
-                  </button>
-                )}
-              </div>
             </div>
           </div>
         </div>
