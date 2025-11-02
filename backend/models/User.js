@@ -3,6 +3,27 @@ const bcrypt = require("bcryptjs");
 
 const SALT_WORK_FACTOR = 10;
 
+// Sub-schema for professional profile (optional on User)
+const ProProfileSchema = new mongoose.Schema(
+  {
+    businessName: { type: String, default: "", trim: true },
+    siret: { type: String, default: "", trim: true },
+    status: { type: String, enum: ["salon", "freelance"], default: "freelance" },
+    exerciseType: { type: [String], default: [] },
+    experience: { type: String, enum: ["<1 an", "1 an", "2+ ans", "5+ ans"], default: "<1 an" },
+    headerImage: { type: String, default: "" },
+    location: {
+      city: { type: String, default: "", trim: true },
+      country: { type: String, default: "", trim: true },
+      address: { type: String, default: "", trim: true },
+      latitude: { type: Number, default: null },
+      longitude: { type: Number, default: null },
+    },
+    categories: { type: [String], default: [] },
+  },
+  { _id: false }
+);
+
 const UserSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -20,7 +41,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "",
       trim: true,
-      match: [/^\+?\d{6,15}$/, "Numéro de téléphone invalide"],
+      match: [/^\+?\d{6,15}$/, "Numero de telephone invalide"],
     },
 
     location: {
@@ -33,45 +54,11 @@ const UserSchema = new mongoose.Schema(
     avatarClient: { type: String, default: "" },
     avatarPro: { type: String, default: "" },
 
-    role: {
-      type: String,
-      enum: ["client", "pro"],
-      default: "client",
-    },
-    activeRole: {
-      type: String,
-      enum: ["client", "pro"],
-      default: "client",
-    },
+    role: { type: String, enum: ["client", "pro"], default: "client" },
+    activeRole: { type: String, enum: ["client", "pro"], default: "client" },
 
-    proProfile: {
-      businessName: { type: String, default: "", trim: true },
-      siret: { type: String, default: "", trim: true },
-      status: {
-        type: String,
-        enum: ["salon", "freelance"],
-        default: "freelance",
-      },
-      exerciseType: { type: [String], default: [] },
-      experience: {
-        type: String,
-        enum: ["<1 an", "1 an", "2+ ans", "5+ ans"],
-        default: "<1 an",
-      },
-      headerImage: { type: String, default: "" },
-      location: {
-        city: { type: String, default: "", trim: true },
-        country: { type: String, default: "", trim: true },
-        address: { type: String, default: "", trim: true },
-        latitude: { type: Number, default: null },
-        longitude: { type: Number, default: null },
-      },
-      categories: {
-        type: [String],
-        enum: ["Coiffure", "Esthétique", "Tatouage", "Maquillage"],
-        default: [],
-      },
-    },
+    // Optional professional profile. Will be created only for pros or when upgrading.
+    proProfile: { type: ProProfileSchema, default: undefined },
 
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

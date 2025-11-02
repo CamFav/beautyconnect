@@ -1,4 +1,4 @@
-import { useState, useContext, useMemo } from "react";
+﻿import { useState, useContext, useMemo } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../../../context/AuthContextBase";
 import httpClient from "../../../api/http/httpClient";
@@ -29,7 +29,7 @@ export default function RegisterPro() {
   const upgrading = useMemo(() => !!user && user.role !== "pro", [user]);
   const prefill = location.state?.prefill || {};
 
-  // --- États du compte utilisateur ---
+  // --- Ã‰tats du compte utilisateur ---
   const [account, setAccount] = useState({
     name: sanitizeName(prefill.name || ""),
     email: sanitizeInput(prefill.email || ""),
@@ -44,7 +44,7 @@ export default function RegisterPro() {
   const [step, setStep] = useState(1);
   const [consentGiven, setConsentGiven] = useState(false);
 
-  // --- États liés à l'activité professionnelle ---
+  // --- Ã‰tats liÃ©s Ã  l'activitÃ© professionnelle ---
   const [activityType, setActivityType] = useState("");
   const [salonName, setSalonName] = useState("");
   const [freelanceName, setFreelanceName] = useState("");
@@ -64,7 +64,7 @@ export default function RegisterPro() {
   // --- Validation SIRET ---
   const siretIsValid = (val) => /^[0-9]{14}$/.test(String(val || "").trim());
 
-  // --- Validation des étapes ---
+  // --- Validation des Ã©tapes ---
   const canGoNext = () => {
     if (!upgrading) {
       if (
@@ -158,7 +158,7 @@ export default function RegisterPro() {
         !validatePassword(account.password) ||
         account.password !== account.confirmPassword
       ) {
-        setFormError("Veuillez vérifier les informations du compte.");
+        setFormError("Veuillez vÃ©rifier les informations du compte.");
         return;
       }
     }
@@ -199,7 +199,7 @@ export default function RegisterPro() {
         const updatedUser = await upgradeUserToPro(proPayload);
         updateUser(updatedUser);
 
-        // Rafraîchir les infos du compte pour recharger le rôle et le token
+        // RafraÃ®chir les infos du compte pour recharger le rÃ´le et le token
         try {
           const me = await httpClient.get("/auth/me");
           if (me?.data) {
@@ -207,13 +207,13 @@ export default function RegisterPro() {
             updateUser(me.data);
           }
         } catch (refreshErr) {
-          console.warn("Erreur lors du refresh après upgrade :", refreshErr);
+          console.warn("Erreur lors du refresh aprÃ¨s upgrade :", refreshErr);
         }
 
-        // Message de succès + reload global (pour recharger les routes /pro)
+        // Message de succÃ¨s + reload global (pour recharger les routes /pro)
         setFormSuccess("Votre compte est maintenant professionnel.");
         setTimeout(() => {
-          window.location.reload(); // recharge l’app avec le rôle mis à jour
+          window.location.reload(); // recharge lâ€™app avec le rÃ´le mis Ã  jour
         }, 1200);
 
         return;
@@ -230,7 +230,7 @@ export default function RegisterPro() {
       };
 
       await handleRegister(payload);
-      setFormSuccess("Inscription réussie ! Vous allez être redirigé...");
+      setFormSuccess("Inscription rÃ©ussie ! Vous allez Ãªtre redirigÃ©...");
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       console.error("Erreur REGISTER/UPGRADE :", err?.response?.data || err);
@@ -238,7 +238,7 @@ export default function RegisterPro() {
       if (!upgrading) {
         const backendMessage = err?.response?.data?.message;
         if (backendMessage?.toLowerCase().includes("email")) {
-          setEmailError("Cet email est déjà utilisé.");
+          setEmailError("Cet email est dÃ©jÃ  utilisÃ©.");
           return;
         }
       }
@@ -251,7 +251,7 @@ export default function RegisterPro() {
     }
   };
 
-  // --- État de succès ---
+  // --- Ã‰tat de succÃ¨s ---
   if (formSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -259,7 +259,7 @@ export default function RegisterPro() {
           <p className="text-lg font-semibold mb-4">{formSuccess}</p>
           <div className="flex items-center justify-center space-x-2 text-gray-600">
             <span>Redirection en cours...</span>
-            <span className="animate-pulse">⏳</span>
+            <span className="animate-pulse">â³</span>
           </div>
         </div>
       </div>
@@ -270,8 +270,8 @@ export default function RegisterPro() {
   return (
     <>
       <Seo
-        title="Créer un compte professionnel"
-        description="Créez votre compte BeautyConnect Pro pour gérer vos services, réservations et visibilité en ligne."
+        title="CrÃ©er un compte professionnel"
+        description="CrÃ©ez votre compte BeautyConnect Pro pour gÃ©rer vos services, rÃ©servations et visibilitÃ© en ligne."
       />
       <div className="min-h-screen bg-gray-50 flex flex-col relative">
         <div className="absolute top-4 right-6">
@@ -279,30 +279,30 @@ export default function RegisterPro() {
             to="/home"
             className="border border-blue-600 text-blue-600 px-4 py-2 text-sm rounded-lg hover:bg-blue-600 hover:text-white transition"
           >
-            Accéder au site
+            AccÃ©der au site
           </Link>
         </div>
 
         <div className="flex flex-1 items-center justify-center px-6 py-10">
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Bloc gauche : création de compte */}
+            {/* Bloc gauche : crÃ©ation de compte */}
             {!upgrading && (
               <div className="lg:col-span-1">
                 <div className="bg-white border border-gray-200 rounded-xl shadow-md p-6">
                   <h2 className="text-xl font-semibold mb-4">
-                    Créez votre compte professionnel
+                    CrÃ©ez votre compte professionnel
                   </h2>
                   {emailError && (
                     <AlertMessage type="error" message={emailError} />
                   )}
                   <div className="space-y-4">
-                    {/* Nom / prénom */}
+                    {/* Nom / prÃ©nom */}
                     <div>
                       <label
                         htmlFor="accountName"
                         className="block text-sm font-medium text-gray-700 mb-1"
                       >
-                        Nom / Prénom
+                        Nom / PrÃ©nom
                       </label>
                       <input
                         id="accountName"
@@ -400,24 +400,26 @@ export default function RegisterPro() {
               </div>
             )}
 
-            {/* Bloc droit : étapes pro */}
+            {/* Bloc droit : Ã©tapes pro */}
             <div className={upgrading ? "lg:col-span-3" : "lg:col-span-2"}>
               <div className="bg-white border border-gray-200 rounded-xl shadow-md p-6">
+                {upgrading && (
+                  <div className="mb-4">
+                    <AlertMessage type="info">
+                      Vous êtes connecté en tant que <b>{user?.email}</b>. En
+                      validant, votre compte sera converti en professionnel.
+                    </AlertMessage>
+                  </div>
+                )}
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold">
                     Informations professionnelles
                   </h3>
                   <div className="text-sm text-gray-600">
-                    Étape <b>{step}</b> / 5
+                    Ã‰tape <b>{step}</b> / 5
                   </div>
                 </div>
 
-                {upgrading && (
-                  <AlertMessage type="info">
-                    Vous êtes connecté en tant que <b>{user?.email}</b>. En
-                    validant, votre compte sera converti en professionnel.
-                  </AlertMessage>
-                )}
                 {formError && <AlertMessage type="error" message={formError} />}
 
                 <div className="space-y-6">
@@ -520,7 +522,7 @@ export default function RegisterPro() {
                       </button>
                     ) : (
                       <div className="flex flex-col items-end space-y-4">
-                        {/* Consentement RGPD (affiché uniquement si pas en upgrade) */}
+                        {/* Consentement RGPD (affichÃ© uniquement si pas en upgrade) */}
                         {!upgrading && (
                           <div className="flex items-start text-sm">
                             <input
@@ -537,12 +539,12 @@ export default function RegisterPro() {
                               htmlFor="consentPro"
                               className="text-gray-700"
                             >
-                              J’ai lu et j’accepte la{" "}
+                              Jâ€™ai lu et jâ€™accepte la{" "}
                               <Link
                                 to="/legal/politique-de-confidentialite"
                                 className="text-blue-600 hover:underline focus-visible:outline-2 focus-visible:outline-blue-500 rounded-sm"
                               >
-                                politique de confidentialité
+                                politique de confidentialitÃ©
                               </Link>{" "}
                               de BeautyConnect.
                             </label>
@@ -564,7 +566,7 @@ export default function RegisterPro() {
                         >
                           {upgrading
                             ? "Valider mon passage en Pro"
-                            : "Créer mon compte"}
+                            : "CrÃ©er mon compte"}
                         </button>
                       </div>
                     )}
@@ -573,7 +575,7 @@ export default function RegisterPro() {
 
                 {!upgrading && (
                   <div className="text-sm text-center mt-6">
-                    <span className="text-gray-600">Déjà un compte ? </span>
+                    <span className="text-gray-600">DÃ©jÃ  un compte ? </span>
                     <Link to="/login" className="text-blue-600 hover:underline">
                       Se connecter
                     </Link>
@@ -587,3 +589,4 @@ export default function RegisterPro() {
     </>
   );
 }
+
