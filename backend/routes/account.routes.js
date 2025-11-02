@@ -31,6 +31,7 @@ router.patch("/profile", protect, updateProfile);
 // ========================================
 // PATCH /api/account/pro-profile
 // ========================================
+// Autorise les clients à utiliser /pro-profile pour effectuer l'upgrade vers PRO
 router.patch("/pro-profile", protect, updateProProfile);
 
 // ========================================
@@ -39,6 +40,7 @@ router.patch("/pro-profile", protect, updateProProfile);
 router.patch(
   "/pro/header",
   protect,
+  requireRole("pro"),
   upload.single("header"),
   updateProHeaderImage
 );

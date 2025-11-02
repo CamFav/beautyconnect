@@ -121,14 +121,22 @@ const updateProfile = async (req, res) => {
 
     if (location) {
       const { city, country, address, latitude, longitude } = location;
-
-      user.proProfile.location = {
-        city: city || user.proProfile?.location?.city || "",
-        country: country || user.proProfile?.location?.country || "",
-        address: address ?? user.proProfile?.location?.address ?? "",
-        latitude: latitude ?? user.proProfile?.location?.latitude ?? null,
-        longitude: longitude ?? user.proProfile?.location?.longitude ?? null,
+      user.location = {
+        city: city || user.location?.city || "",
+        country: country || user.location?.country || "",
+        latitude: latitude ?? user.location?.latitude ?? null,
+        longitude: longitude ?? user.location?.longitude ?? null,
       };
+      // Optionnel: si pro, synchroniser la localisation pro pour l'affichage public
+      if (user.activeRole === "pro" && user.proProfile) {
+        user.proProfile.location = {
+          city: user.location.city || "",
+          country: user.location.country || "",
+          address: user.location.address || "",
+          latitude: user.location.latitude ?? null,
+          longitude: user.location.longitude ?? null,
+        };
+      }
     }
 
     await user.save();
