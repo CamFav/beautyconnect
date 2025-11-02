@@ -72,7 +72,21 @@ describe('Routes - account', () => {
     expect([200,400,404]).toContain(res.statusCode);
   });
 
-  it('PATCH /api/account/pro/header rejects without file and accepts with file', async () => {
+  it('PATCH /api/account/pro/header rejects without file (as pro) and accepts with file', async () => {
+    // Ensure the user is a pro (route is restricted to role "pro")
+    await request(app)
+      .put('/api/account/upgrade')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        businessName: 'Salon Test',
+        siret: '12345678901234',
+        status: 'freelance',
+        experience: '<1 an',
+        location: { city: 'Paris', country: 'France' },
+        exerciseType: [],
+        categories: []
+      });
+
     const noFile = await request(app)
       .patch('/api/account/pro/header')
       .set('Authorization', `Bearer ${token}`);
