@@ -40,8 +40,16 @@ router.patch("/pro-profile", protect, updateProProfile);
 router.patch(
   "/pro/header",
   protect,
-  requireRole("pro"),
+  // Traite d'abord l'upload pour pouvoir répondre 400 si aucun fichier n'est fourni
   upload.single("header"),
+  (req, res, next) => {
+    if (!req.file) {
+      return res.status(400).json({ message: "Aucun fichier fourni" });
+    }
+    next();
+  },
+  // Puis contrôle du rôle
+  requireRole("pro"),
   updateProHeaderImage
 );
 
