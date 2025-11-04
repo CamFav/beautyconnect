@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContextBase";
 import { likePost, favoritePost } from "../../api/posts/post.service";
-import { Heart, Star, MessageCircle, Calendar, X } from "lucide-react";
+import { Heart, Star, Calendar, X } from "lucide-react";
 import Avatar from "../ui/Avatar";
 import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { authRequired } from "@/utils/errorMessages";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -15,22 +16,18 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
   const modalRef = useRef(null);
   const closeBtnRef = useRef(null);
 
-  // Sync avec post parent
   useEffect(() => setLocalPost(post), [post]);
 
-  // Échap pour fermer
   useEffect(() => {
     const handleKeyDown = (e) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  // Focus initial
   useEffect(() => {
     if (isOpen && closeBtnRef.current) closeBtnRef.current.focus();
   }, [isOpen]);
 
-  // Focus trap
   useEffect(() => {
     const trapFocus = (e) => {
       if (!isOpen || !modalRef.current) return;
@@ -56,7 +53,12 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
   if (!isOpen || !localPost) return null;
 
   const sanitize = (val) =>
-    typeof val === "string" ? val.trim().replace(/[<>]/g, "") : val;
+    typeof val === "string"
+      ? val
+          .trim()
+          .replace(/[<>]/g, "")
+          .replace(/&#x27;/g, "'")
+      : val;
 
   const provider = localPost.provider;
   const avatar = provider?.avatarPro || provider?.avatarClient || null;
@@ -77,7 +79,7 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
 
   const checkToken = () => {
     if (!token) {
-      toast.error("Votre session a expiré, veuillez vous reconnecter.", {
+      toast.error(authRequired(), {
         duration: 4000,
         style: {
           background: "#fee2e2",
@@ -132,7 +134,6 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
     currentUser && localPost.favorites?.includes(currentUser._id);
   const isOwner = currentUser?._id === provider?._id;
 
-  // --- Ajout : Date formatée ---
   const formattedDate = localPost.createdAt
     ? formatDistanceToNow(new Date(localPost.createdAt), {
         addSuffix: true,
@@ -155,7 +156,6 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
         className="bg-white rounded-lg shadow-lg max-w-md w-full relative p-4 space-y-4 outline-none"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Bouton fermer  */}
         <button
           ref={closeBtnRef}
           onClick={onClose}
@@ -165,7 +165,6 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
           <X size={20} strokeWidth={2.2} />
         </button>
 
-        {/* Image avec date en overlay */}
         <div className="relative w-full">
           {localPost.mediaUrl && (
             <>
@@ -183,7 +182,6 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
           )}
         </div>
 
-        {/* Prestataire */}
         {provider && (
           <Link
             to={profileLink}
@@ -202,7 +200,6 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
           </Link>
         )}
 
-        {/* Description */}
         <p
           id="post-modal-desc"
           className="text-gray-700 break-words overflow-hidden text-sm leading-snug"
@@ -215,10 +212,8 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
           {sanitize(localPost.description) || "Pas de description"}
         </p>
 
-        {/* Actions */}
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-6">
-            {/* Like */}
             <button
               onClick={!isOwner ? handleLike : undefined}
               disabled={loading || isOwner}
@@ -241,7 +236,6 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
               </span>
             </button>
 
-            {/* Favori */}
             <button
               onClick={!isOwner ? handleFavorite : undefined}
               disabled={loading || isOwner}
@@ -269,23 +263,14 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
             </button>
           </div>
 
-          {!isOwner && (
-            <div className="flex items-center gap-5">
-              <button className="flex items-center gap-1 hover:text-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-600 rounded-md">
-                <MessageCircle size={20} />
-                <span>Contacter</span>
-              </button>
-
-              {provider?._id && (
-                <Link
-                  to={`/profile/${sanitize(provider._id)}#offres`}
-                  className="flex items-center gap-1 hover:text-green-600 transition focus:outline-none focus:ring-2 focus:ring-green-600 rounded-md"
-                >
-                  <Calendar size={20} />
-                  <span>Réserver</span>
-                </Link>
-              )}
-            </div>
+          {!isOwner && provider?._id && (
+            <Link
+              to={`/profile/${sanitize(provider._id)}#offres`}
+              className="flex items-center gap-1 hover:text-green-600 transition focus:outline-none focus:ring-2 focus:ring-green-600 rounded-md"
+            >
+              <Calendar size={20} />
+              <span>Réserver</span>
+            </Link>
           )}
         </div>
       </div>

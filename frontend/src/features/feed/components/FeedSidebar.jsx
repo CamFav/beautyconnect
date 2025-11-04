@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContextBase";
 import httpClient from "../../../api/http/httpClient";
 import { toast } from "react-hot-toast";
+import { authRequired } from "@/utils/errorMessages";
 
 export default function FeedSidebar({ selectedCity, posts, cityActive }) {
   const { token } = useAuth();
@@ -38,7 +39,7 @@ export default function FeedSidebar({ selectedCity, posts, cityActive }) {
 
   const toggleFollow = async (proId) => {
     if (!token) {
-      toast.error("Vous devez être connecté pour suivre un artiste.", {
+      toast.error(authRequired("suivre un artiste"), {
         duration: 4000,
         style: {
           background: "#fee2e2",
@@ -162,8 +163,13 @@ export default function FeedSidebar({ selectedCity, posts, cityActive }) {
                   className="flex items-center gap-3 cursor-pointer hover:opacity-80 flex-1"
                 >
                   <Avatar
-                    src={pro.avatarPro || pro.avatarClient || ""}
-                    alt={sanitize(pro.name || "Prestataire")}
+                    src={pro.avatarPro || ""}
+                    name={sanitize(
+                      pro.proProfile?.businessName || pro.name || "Prestataire"
+                    )}
+                    alt={sanitize(
+                      pro.proProfile?.businessName || pro.name || "Prestataire"
+                    )}
                     size={40}
                   />
                   <div className="flex-1">
@@ -213,12 +219,17 @@ export default function FeedSidebar({ selectedCity, posts, cityActive }) {
                   className="flex items-center gap-3 cursor-pointer hover:opacity-80 flex-1"
                 >
                   <Avatar
-                    src={
-                      item.provider.avatarPro ||
-                      item.provider.avatarClient ||
-                      ""
-                    }
-                    alt={sanitize(item.provider.name || "Prestataire")}
+                    src={item.provider.avatarPro || ""}
+                    name={sanitize(
+                      item.provider.proProfile?.businessName ||
+                        item.provider.name ||
+                        "Prestataire"
+                    )}
+                    alt={sanitize(
+                      item.provider.proProfile?.businessName ||
+                        item.provider.name ||
+                        "Prestataire"
+                    )}
                     size={40}
                   />
                   <div className="flex-1">
@@ -242,3 +253,4 @@ export default function FeedSidebar({ selectedCity, posts, cityActive }) {
     </aside>
   );
 }
+

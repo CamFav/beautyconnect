@@ -6,6 +6,7 @@ const upload = require("../middleware/upload");
 const cloudinary = require("../config/cloudinary");
 const { body, param, query } = require("express-validator");
 const validate = require("../middleware/validate");
+const sanitizeHtml = require("sanitize-html");
 
 // Anti-injection
 const allowOnly = (allowedKeys, data) => {
@@ -58,7 +59,12 @@ router.post(
   protect,
   upload.single("media"),
   [
-    body("description").optional().trim().escape(),
+    body("description")
+      .optional()
+      .trim()
+      .customSanitizer((v) =>
+        sanitizeHtml(v, { allowedTags: [], allowedAttributes: {} })
+      ),
     body("category").optional().trim().escape(),
   ],
   validate,
@@ -99,7 +105,12 @@ router.patch(
   upload.single("media"),
   [
     param("id").isMongoId().withMessage("ID invalide"),
-    body("description").optional().trim().escape(),
+    body("description")
+      .optional()
+      .trim()
+      .customSanitizer((v) =>
+        sanitizeHtml(v, { allowedTags: [], allowedAttributes: {} })
+      ),
     body("category").optional().trim().escape(),
   ],
   validate,
