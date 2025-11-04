@@ -74,10 +74,11 @@ describe('Routes - account', () => {
 
   it('PATCH /api/account/pro/header rejects without file and accepts with file', async () => {
     // Ensure the user has pro role to bypass 403 from role middleware
-    await request(app)
+    const roleRes = await request(app)
       .patch('/api/account/role')
       .set('Authorization', `Bearer ${token}`)
       .send({ role: 'pro' });
+    const proToken = roleRes.body?.token || token;
 
     const noFile = await request(app)
       .patch('/api/account/pro/header')
@@ -86,7 +87,7 @@ describe('Routes - account', () => {
 
     const ok = await request(app)
       .patch('/api/account/pro/header')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${proToken}`)
       .attach('header', Buffer.from('dummy'), { filename: 'test.png', contentType: 'image/png' });
     expect([200,404]).toContain(ok.statusCode);
   });
