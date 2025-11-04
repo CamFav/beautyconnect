@@ -143,7 +143,7 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
 
   return (
     <div
-      className="fixed inset-0 flex justify-center items-center z-50 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 flex justify-center items-center z-50 bg-black/40 backdrop-blur-sm overflow-y-auto p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -153,7 +153,7 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
     >
       <div
         ref={modalRef}
-        className="bg-white rounded-lg shadow-lg max-w-md w-full relative p-4 space-y-4 outline-none"
+        className="bg-white rounded-lg shadow-lg max-w-md w-full relative p-4 space-y-4 outline-none max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -165,13 +165,13 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
           <X size={20} strokeWidth={2.2} />
         </button>
 
-        <div className="relative w-full">
+        <div className="relative w-full max-h-[60vh] overflow-hidden">
           {localPost.mediaUrl && (
             <>
               <img
                 src={sanitize(localPost.mediaUrl)}
                 alt="Image de la publication"
-                className="w-full rounded"
+                className="w-full rounded max-h-[60vh] object-contain"
               />
               {formattedDate && (
                 <div className="absolute top-2 left-2 z-20 bg-black/60 text-white text-xs px-2 py-1 rounded-md shadow-sm">
