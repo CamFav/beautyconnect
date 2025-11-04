@@ -1,6 +1,33 @@
 import { Link } from "react-router-dom";
+
+  const blockOwnerAction = () => {
+    toast.error(ownerActionNotAllowed, {
+      duration: 3000,
+    });
+  };
+
+  const onLikeClick = () => {
+    if (isOwner) return blockOwnerAction();
+    if (!user) {
+      toast.error(authRequired("liker un post"));
+      return;
+    }
+    if (post._id) handleLike?.(post._id);
+  };
+
+  const onFavoriteClick = () => {
+    if (isOwner) return blockOwnerAction();
+    if (!user) {
+      toast.error(authRequired("ajouter un favori"));
+      return;
+    }
+    if (post._id) handleFavorite?.(post._id);
+  };
+
 import Avatar from "../../../components/ui/Avatar";
 import { Heart, Star, Calendar } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { ownerActionNotAllowed, authRequired } from "@/utils/errorMessages";
 
 export default function PostCard({
   post,
@@ -38,8 +65,33 @@ export default function PostCard({
     user && Array.isArray(post.likes) && post.likes.includes(user._id);
   const isFavorited =
     user && Array.isArray(post.favorites) && post.favorites.includes(user._id);
+  const isOwner = user?._id && provider?._id && String(user._id) === String(provider._id);
 
   const description = sanitize(post.description || "");
+
+  const blockOwnerAction = () => {
+    toast.error(ownerActionNotAllowed, {
+      duration: 3000,
+    });
+  };
+
+  const onLikeClick = () => {
+    if (isOwner) return blockOwnerAction();
+    if (!user) {
+      toast.error(authRequired("liker un post"));
+      return;
+    }
+    if (post._id) handleLike?.(post._id);
+  };
+
+  const onFavoriteClick = () => {
+    if (isOwner) return blockOwnerAction();
+    if (!user) {
+      toast.error(authRequired("ajouter un favori"));
+      return;
+    }
+    if (post._id) handleFavorite?.(post._id);
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
@@ -95,16 +147,36 @@ export default function PostCard({
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-6">
             <button
-              onClick={() => post._id && handleLike(post._id)}
-              className="flex items-center gap-1 hover:text-red-600 transition"
+              type="button"
+              onClick={onLikeClick}
+              className={`flex items-center gap-1 transition ${
+                isOwner ? "opacity-50 cursor-not-allowed" : "hover:text-red-600"
+              }`}
+              title={
+                isOwner
+                  ? "Action indisponible sur vos propres publications"
+                  : ""
+              }
+              aria-disabled={isOwner}
             >
               <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
               <span>{Array.isArray(post.likes) ? post.likes.length : 0}</span>
             </button>
 
             <button
-              onClick={() => post._id && handleFavorite(post._id)}
-              className="flex items-center gap-1 hover:text-yellow-500 transition"
+              type="button"
+              onClick={onFavoriteClick}
+              className={`flex items-center gap-1 transition ${
+                isOwner
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:text-yellow-500"
+              }`}
+              title={
+                isOwner
+                  ? "Action indisponible sur vos propres publications"
+                  : ""
+              }
+              aria-disabled={isOwner}
             >
               <Star size={20} fill={isFavorited ? "currentColor" : "none"} />
               <span>
