@@ -10,7 +10,12 @@ export default function PostCard({
   handleImageClick,
 }) {
   const sanitize = (val) =>
-    typeof val === "string" ? val.trim().replace(/[<>]/g, "") : val;
+    typeof val === "string"
+      ? val
+          .trim()
+          .replace(/[<>]/g, "")
+          .replace(/&#x27;/g, "'")
+      : val;
 
   const provider = post.provider;
   const avatar = provider?.avatarPro || provider?.avatarClient || null;
@@ -122,3 +127,4 @@ export default function PostCard({
     </div>
   );
 }
+
