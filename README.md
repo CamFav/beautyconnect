@@ -89,6 +89,7 @@ beautyconnect/
 │
 ├── docker-compose.yml        # Dev
 └── docker-compose.prod.yml   # Prod (Nginx + Node + Mongo)
+```
 
 ---
 
