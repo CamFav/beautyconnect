@@ -104,14 +104,14 @@ beautyconnect/
 ### Étapes d’installation
 
 #### Backend
-\```bash
+```bash
 cd backend
 npm install
 npm run dev
-\```
+```
 
 Créer un fichier `.env` dans `backend/` :
-\```bash
+```bash
 NODE_ENV=development
 PORT=5000
 MONGO_URL=mongodb+srv://<user>:<password>@<cluster>/<dbname>?retryWrites=true&w=majority
@@ -121,19 +121,19 @@ CORS_ORIGINS=http://localhost:5173
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_key
 CLOUDINARY_API_SECRET=your_secret
-\```
+```
 
 #### Frontend
-\```bash
+```bash
 cd frontend
 npm install
 npm run dev
-\```
+```
 
 Créer un fichier `.env.development` dans `frontend/` :
-\```bash
+```bash
 VITE_API_URL=http://localhost:5000/api
-\```
+```
 
 **Accès par défaut :**
 - Frontend → http://localhost:5173  
@@ -145,9 +145,9 @@ VITE_API_URL=http://localhost:5000/api
 ## 🐳 Exécution avec Docker
 
 ### Mode Développement
-\```bash
+```bash
 docker compose up --build
-\```
+```
 - Frontend → [http://localhost:5173](http://localhost:5173)  
 - Backend API → [http://localhost:5000/api](http://localhost:5000/api)  
 - MongoDB → mongodb://localhost:27017/beautyconnect  
@@ -155,9 +155,9 @@ docker compose up --build
 Les conteneurs incluent le **hot-reload** pour le front et le back.
 
 ### Mode Production
-\```bash
+```bash
 docker compose -f docker-compose.prod.yml up --build -d
-\```
+```
 - Front (Nginx) : port 80  
 - Backend (Node) : port 8080  
 - MongoDB : base persistante avec volume et authentification  
@@ -167,16 +167,16 @@ docker compose -f docker-compose.prod.yml up --build -d
 ## 🧪 Tests
 
 ### Backend
-\```bash
+```bash
 cd backend
 npm test
-\```
+```
 
 ### Frontend
-\```bash
+```bash
 cd frontend
 npm run test
-\```
+```
 
 Les tests utilisent Jest (backend) et Vitest (frontend).  
 L’environnement de test MongoDB est simulé via `mongodb-memory-server` si disponible.
@@ -216,9 +216,9 @@ L’environnement de test MongoDB est simulé via `mongodb-memory-server` si dis
 3. Le backend se connecte à MongoDB Atlas et Cloudinary via `.env`.
 
 ### Docker Compose (Production)
-\```bash
+```bash
 docker compose -f docker-compose.prod.yml up --build -d
-\```
+```
 - Front (Nginx) sur le port 80  
 - Backend sur le port 8080  
 - MongoDB persistant avec volume dédié  
@@ -232,11 +232,11 @@ docker compose -f docker-compose.prod.yml up --build -d
 
 ### Contribution
 Les contributions sont les bienvenues :
-\```bash
+```bash
 git checkout -b feature/ma-feature
 git commit -m "feat: nouvelle fonctionnalité"
 git push origin feature/ma-feature
-\```
+```
 Puis ouvrir une Pull Request sur GitHub.
 
 ---
