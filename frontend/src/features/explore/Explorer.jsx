@@ -7,6 +7,7 @@ import LocationFilter from "@/features/feed/components/LocationFilter";
 import ProCard from "@/features/explore/components/ProCard";
 import AlertMessage from "../../components/feedback/AlertMessage";
 import Seo from "@/components/seo/Seo";
+import { mapApiErrors } from "@/utils/validators";
 
 export default function Explorer() {
   const { token, user: currentUser } = useAuth();
@@ -80,9 +81,12 @@ export default function Explorer() {
         setPros(onlyPros);
       } catch (err) {
         console.error("Erreur chargement prestataires:", err);
+        const apiErrors = mapApiErrors(err?.response?.data);
         setAlert({
           type: "error",
-          message: "Impossible de charger les prestataires pour le moment.",
+          message:
+            apiErrors._error ||
+            "Impossible de charger les prestataires pour le moment.",
         });
       } finally {
         setLoading(false);
@@ -161,10 +165,11 @@ export default function Explorer() {
       );
     } catch (err) {
       console.error("Erreur follow/unfollow :", err);
+      const apiErrors = mapApiErrors(err?.response?.data);
       setAlert({
         type: "error",
         message:
-          err.response?.data?.message ||
+          apiErrors._error ||
           "Impossible de suivre ce prestataire pour le moment.",
       });
     }

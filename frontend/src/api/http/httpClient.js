@@ -9,6 +9,7 @@ console.log(
   "color: #3b82f6; font-weight: bold;"
 );
 
+// Création d’une instance Axios
 const httpClient = axios.create({
   baseURL,
   withCredentials: true,
@@ -17,8 +18,10 @@ const httpClient = axios.create({
 // Intercepteur de requête : ajoute automatiquement le token
 httpClient.interceptors.request.use(
   (config) => {
+    // Récupère le token depuis le localStorage
     const token = localStorage.getItem("token");
     if (token) {
+      // Ajoute le header Authorization avec le token
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;

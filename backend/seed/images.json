@@ -1,0 +1,27 @@
+{
+  "posts": {
+    "Coiffure": [
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353192/coiffure1_snrun7.jpg",
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353197/coiffure2_oivnap.jpg",
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353204/coiffure3_q6wiin.jpg",
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353209/coiffure4_a3bwab.jpg"
+    ],
+    "Tatouage": [
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353295/tatouage1_glauzg.jpg",
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353300/tatouage2_usumew.jpg",
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353305/tatouage3_edhe8w.jpg",
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353310/tatouage4_brcbtc.jpg"
+    ],
+    "Maquillage": [
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353467/maquillage1_urea7k.jpg",
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353471/maquillage2_fhauor.jpg",
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353475/maquillage3_mhzm2b.jpg",
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353479/maquillage4_wnsoww.jpg"
+    ],
+    "Esthetique": [
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353488/esthe1_irg184.jpg",
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353492/esthe2_wceiva.jpg",
+      "https://res.cloudinary.com/dr3trzymq/image/upload/v1762353499/esthe3_we2wvn.jpg"
+    ]
+  }
+}

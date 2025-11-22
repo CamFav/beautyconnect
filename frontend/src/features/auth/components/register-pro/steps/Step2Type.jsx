@@ -73,6 +73,7 @@ export default function Step2Type({
               longitude: addr.longitude,
             });
           }}
+          hint="Ex : 27 Rue des Martyrs, 75009 Paris"
         />
       </div>
     );
@@ -159,7 +160,7 @@ export default function Step2Type({
 
         {/* Adresse principale (même système que salon) */}
         <AddressField
-          label="Adresse principale"
+          label="Ville et pays"
           initialValue={locationField.address}
           onSelectAddress={(addr) => {
             setLocationField({
@@ -170,6 +171,7 @@ export default function Step2Type({
               longitude: addr.longitude,
             });
           }}
+          hint="Ville requise (ex. Bordeaux). Ajoutez une adresse si vous recevez à domicile."
         />
       </div>
     );

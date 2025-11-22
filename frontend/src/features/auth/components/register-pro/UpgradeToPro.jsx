@@ -24,7 +24,7 @@ export default function UpgradeToPro() {
       }
     }, 200); // 200ms suffit pour que le context se mette à jour
     return () => clearTimeout(timer);
-  }, [user]);
+  }, [user, navigate]);
 
   // États des étapes
   const [step, setStep] = useState(1);
@@ -324,3 +324,4 @@ export default function UpgradeToPro() {
     </>
   );
 }
+

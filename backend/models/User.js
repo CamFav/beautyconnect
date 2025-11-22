@@ -8,9 +8,17 @@ const ProProfileSchema = new mongoose.Schema(
   {
     businessName: { type: String, default: "", trim: true },
     siret: { type: String, default: "", trim: true },
-    status: { type: String, enum: ["salon", "freelance"], default: "freelance" },
+    status: {
+      type: String,
+      enum: ["salon", "freelance"],
+      default: "freelance",
+    },
     exerciseType: { type: [String], default: [] },
-    experience: { type: String, enum: ["<1 an", "1 an", "2+ ans", "5+ ans"], default: "<1 an" },
+    experience: {
+      type: String,
+      enum: ["<1 an", "1 an", "2+ ans", "5+ ans"],
+      default: "<1 an",
+    },
     headerImage: { type: String, default: "" },
     location: {
       city: { type: String, default: "", trim: true },
@@ -69,9 +77,13 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
+// Hashage automatique du mot de passe avant sauvegarde
 UserSchema.pre("save", async function (next) {
+  // Ne rehash pas si le mot de passe n’a pas été modifié
   if (!this.isModified("password")) return next();
+
   const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
+
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });

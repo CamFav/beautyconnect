@@ -15,6 +15,8 @@ exports.protect = (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
+
+    // Vérification et décodage du token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Vérification expiration manuelle
@@ -22,6 +24,7 @@ exports.protect = (req, res, next) => {
       return res.status(401).json({ message: "Token expiré." });
     }
 
+    // Extraction de l'ID utilisateur
     const userId = decoded.sub || decoded.id;
     if (!userId) {
       return res
@@ -29,6 +32,7 @@ exports.protect = (req, res, next) => {
         .json({ message: "Token invalide: identifiant manquant." });
     }
 
+    // Injection des infos utilisateur dans req.user
     req.user = {
       id: userId,
       email: decoded.email || null,

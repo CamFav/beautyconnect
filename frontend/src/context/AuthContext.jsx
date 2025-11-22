@@ -135,9 +135,10 @@ const AuthProvider = ({ children }) => {
         try {
           const parsed = JSON.parse(storedUser);
           setUser(parsed);
-        } catch (e) {
+        } catch (error) {
           console.warn(
-            "[Auth] Impossible de parser le user depuis localStorage"
+            "[Auth] Impossible de parser le user depuis localStorage",
+            error
           );
         }
       }

@@ -59,8 +59,13 @@ export default function Register() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // Do not sanitize passwords to allow special characters; disallow whitespace via validator
     const cleaned =
-      name === "name" ? sanitizeName(value) : sanitizeInput(value);
+      name === "name"
+        ? sanitizeName(value)
+        : name === "email"
+        ? sanitizeInput(value)
+        : value;
     setFormData((prev) => ({ ...prev, [name]: cleaned }));
     validateField(name, cleaned);
     setSubmitError("");

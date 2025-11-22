@@ -9,6 +9,7 @@ import {
   validateName,
   validatePhone,
   messages,
+  mapApiErrors,
 } from "../../../utils/validators";
 import { AuthContext } from "../../../context/AuthContextBase";
 
@@ -155,15 +156,19 @@ export default function AccountSettings({ user, token, headers, setMessage }) {
 
       if (avatarFile) await saveAvatar();
 
-      setMessage({ type: "success", text: "Profil mis à jour avec succès." });
+      setMessage({ type: "success", text: "Profil mis a jour avec succes." });
       setHasChanges(false);
     } catch (err) {
       console.error("Erreur profil :", err);
+      const apiErrors = mapApiErrors(err?.response?.data);
       setMessage({
         type: "error",
         text:
-          err?.response?.data?.message ||
-          "Impossible de mettre à jour le profil.",
+          apiErrors.name ||
+          apiErrors.email ||
+          apiErrors.phone ||
+          apiErrors._error ||
+          "Impossible de mettre a jour le profil.",
       });
     } finally {
       setSaving(false);

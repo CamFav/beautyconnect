@@ -20,8 +20,8 @@ const asyncHandler = (fn) => (req, res, next) =>
 // ========================================
 router.get(
   "/dashboard",
-  protect,
-  requireRole("pro"),
+  protect, // Vérifie et extrait req.user depuis le JWT
+  requireRole("pro"), // N’autorise que les utilisateurs avec rôle "pro"
   asyncHandler(getDashboard)
 );
 

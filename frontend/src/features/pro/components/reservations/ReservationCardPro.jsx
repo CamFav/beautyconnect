@@ -1,5 +1,5 @@
 import Avatar from "../../../../components/ui/Avatar";
-import { Calendar, Clock, MapPin } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 
 export default function ReservationCardPro({ reservation, onAction }) {
   const {
@@ -11,7 +11,6 @@ export default function ReservationCardPro({ reservation, onAction }) {
     date,
     time,
     status,
-    location,
   } = reservation;
 
   const client =
@@ -85,12 +84,6 @@ export default function ReservationCardPro({ reservation, onAction }) {
                 <Clock size={16} />
                 <span>{time}</span>
               </div>
-              {location && (
-                <div className="flex items-center gap-2">
-                  <MapPin size={16} />
-                  <span>{location}</span>
-                </div>
-              )}
             </div>
           </div>
 

@@ -7,6 +7,7 @@ const {
   validateEmail,
   validatePassword,
   validateName,
+  validationMessages,
 } = require("../../utils/validators");
 
 // ========================================
@@ -85,8 +86,7 @@ const updateProfile = async (req, res) => {
         errors: [
           {
             field: "name",
-            message:
-              "Le nom doit contenir entre 2 et 60 caractères et peut inclure lettres, chiffres, espaces, tirets ou &",
+            message: validationMessages.name,
           },
         ],
       });
@@ -94,7 +94,7 @@ const updateProfile = async (req, res) => {
 
     if (email && !validateEmail(email)) {
       return res.status(400).json({
-        errors: [{ field: "email", message: "Adresse email invalide." }],
+        errors: [{ field: "email", message: validationMessages.email }],
       });
     }
 
@@ -284,6 +284,31 @@ const updateProProfile = async (req, res) => {
     }
 
     if (location) {
+      if (!location.city || !location.country) {
+        return res.status(400).json({
+          errors: [
+            {
+              field: "location",
+              message: "Les champs 'city' et 'country' sont requis.",
+            },
+          ],
+        });
+      }
+
+      if (
+        (status || user.proProfile.status) === "salon" &&
+        !location.address?.trim()
+      ) {
+        return res.status(400).json({
+          errors: [
+            {
+              field: "location.address",
+              message: "L'adresse complète est obligatoire pour un salon.",
+            },
+          ],
+        });
+      }
+
       const { city, country, address, label, latitude, longitude } = location;
       user.proProfile.location = {
         address: address || label || user.proProfile?.location?.address || "",
@@ -329,13 +354,16 @@ const updateProProfile = async (req, res) => {
 // ========================================
 const updateProHeaderImage = async (req, res) => {
   try {
+    // Vérifie qu'un fichier a été uploadé
     if (!req.file) {
       return res.status(400).json({ message: "Aucun fichier fourni" });
     }
 
+    // Récupère l'utilisateur
     const userId = req.user.id;
     const user = await BaseUser.findById(userId);
 
+    // Vérifie que l'utilisateur existe
     if (!user) {
       return res.status(404).json({ message: "Utilisateur introuvable" });
     }
@@ -344,6 +372,7 @@ const updateProHeaderImage = async (req, res) => {
       user.proProfile = {};
     }
 
+    // Upload vers Cloudinary
     const uploadStream = cloudinary.uploader.upload_stream(
       { folder: "headers" },
       async (error, result) => {
@@ -354,6 +383,7 @@ const updateProHeaderImage = async (req, res) => {
             .json({ message: "Erreur upload image cloudinary" });
         }
 
+        // Met à jour le profil pro avec l'URL de l'image
         user.proProfile.headerImage = result.secure_url;
         await user.save();
 
@@ -390,8 +420,7 @@ const updatePassword = async (req, res) => {
         errors: [
           {
             field: "newPassword",
-            message:
-              "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.",
+            message: validationMessages.password,
           },
         ],
       });
@@ -455,3 +484,4 @@ module.exports = {
   updatePassword,
   deleteAccount,
 };
+

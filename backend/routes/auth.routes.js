@@ -49,7 +49,7 @@ router.post(
       .custom((value) => {
         if (!validatePassword(value)) {
           throw new Error(
-            "Mot de passe faible (min 8 caractères, majuscule, minuscule et chiffre requis)"
+            "Mot de passe invalide: 8+ caracteres, 1 majuscule, 1 minuscule, 1 chiffre. Pas d'espaces."
           );
         }
         return true;
@@ -212,3 +212,5 @@ router.get("/me", protect, async (req, res) => {
 });
 
 module.exports = router;
+
+

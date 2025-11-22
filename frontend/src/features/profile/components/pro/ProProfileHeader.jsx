@@ -7,6 +7,7 @@ import {
   Pencil,
   X,
   Users,
+  Home,
 } from "lucide-react";
 import Avatar from "../../../../components/ui/Avatar";
 import httpClient from "../../../../api/http/httpClient";
@@ -41,7 +42,8 @@ export default function ProProfileHeader({
     user?.name ||
     ""
   ).trim();
-  const { status, experience, location } = user?.proProfile || {};
+  const { status, experience, location, exerciseType } =
+    user?.proProfile || {};
 
   const statusText =
     status === "freelance"
@@ -52,6 +54,22 @@ export default function ProProfileHeader({
 
   const experienceText =
     experience && experience !== "Non renseignée" ? experience : null;
+
+  const exerciseBadges =
+    status === "freelance" && Array.isArray(exerciseType)
+      ? [
+          exerciseType.includes("domicile") && {
+            key: "domicile",
+            label: "Domicile",
+            description: "Se déplace uniquement chez le client.",
+          },
+          exerciseType.includes("exterieur") && {
+            key: "exterieur",
+            label: "Extérieur",
+            description: "Se déplace où vous le souhaitez.",
+          },
+        ].filter(Boolean)
+      : [];
 
   const handleImageUpload = async (file, type) => {
     if (!file || !token) return;
@@ -114,10 +132,12 @@ export default function ProProfileHeader({
     const address = (location.address || "").trim();
     const city = (location.city || "").trim();
 
-    if (address && city && address.toLowerCase() === city.toLowerCase()) {
-      return city;
+    if (address && city) {
+      if (address.toLowerCase().includes(city.toLowerCase())) {
+        return address;
+      }
+      return `${address}, ${city}`;
     }
-    if (address && city) return `${address}, ${city}`;
     if (city) return city;
     if (address) return address;
     return "";
@@ -204,9 +224,32 @@ export default function ProProfileHeader({
                 <MapPin size={14} /> {locationText}
               </span>
             )}
+            {exerciseBadges.length > 0 && (
+              <span className="flex items-center gap-2">
+                <Home
+                  size={14}
+                  className="text-blue-600"
+                  aria-hidden="true"
+                />
+                <div
+                  className="flex flex-wrap gap-2 text-xs"
+                  aria-label="Modes d'intervention"
+                >
+                  {exerciseBadges.map((badge) => (
+                    <span
+                      key={badge.key}
+                      className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-semibold"
+                      title={badge.description}
+                    >
+                      {badge.label}
+                    </span>
+                  ))}
+                </div>
+              </span>
+            )}
             <span className="flex items-center gap-1">
               <Users size={14} />
-              <span className="font-medium text-gray-700">
+              <span className="text-gray-700">
                 {followersCount} abonné{followersCount > 1 ? "s" : ""}
               </span>
             </span>
@@ -262,3 +305,4 @@ export default function ProProfileHeader({
     </div>
   );
 }
+

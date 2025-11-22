@@ -1,17 +1,27 @@
-// Vérifie si l'email a un format standard
-const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const NAME_REGEX = /^[\p{L}0-9'&\-\s]{2,60}$/u;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^\s]{8,}$/;
 
-// Vérifie la solidité du mot de passe
-// 8+ caractères, au moins une majuscule, une minuscule et un chiffre
-const validatePassword = (password) =>
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/.test(password);
+const validateEmail = (email) => EMAIL_REGEX.test(email);
+const validatePassword = (password) => PASSWORD_REGEX.test(password);
+const validateName = (name) => NAME_REGEX.test(name);
 
-// Vérifie le nom d'utilisateur ou le business name
-// Exemples valides : "Camille", "Camille Favriel", "Studio & 2000 Camillé"
-const validateName = (name) => /^[A-Za-zÀ-ÿ0-9'&\-\s]{2,60}$/.test(name);
+const validationMessages = {
+  name:
+    "Le nom doit contenir entre 2 et 60 caracteres et peut inclure lettres, chiffres, espaces, tirets ou &.",
+  email: "Adresse email invalide.",
+  password:
+    "Le mot de passe doit contenir au moins 8 caracteres, une majuscule, une minuscule et un chiffre, sans espace.",
+};
 
 module.exports = {
   validateEmail,
   validatePassword,
   validateName,
+  validationMessages,
+  patterns: {
+    NAME_REGEX,
+    EMAIL_REGEX,
+    PASSWORD_REGEX,
+  },
 };

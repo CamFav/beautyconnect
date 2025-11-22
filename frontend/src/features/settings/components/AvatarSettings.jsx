@@ -1,6 +1,7 @@
 import { useContext, useState } from "react";
 import { AuthContext } from "../../../context/AuthContextBase";
 import { updateAvatar } from "../../../api/user.service";
+import { mapApiErrors } from "../../../utils/validators";
 
 export default function AvatarSettings() {
   const { user, token, setUser } = useContext(AuthContext);
@@ -46,9 +47,10 @@ export default function AvatarSettings() {
       setMessage({ type: "success", text: "Avatar mis à jour avec succès" });
     } catch (error) {
       console.error("Erreur upload avatar:", error);
+      const apiErrors = mapApiErrors(error?.response?.data);
       setMessage({
         type: "error",
-        text: error.response?.data?.message || "Erreur lors de l'upload",
+        text: apiErrors._error || "Erreur lors de l'upload",
       });
     } finally {
       setLoading(false);

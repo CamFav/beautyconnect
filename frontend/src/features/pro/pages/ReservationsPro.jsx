@@ -7,6 +7,7 @@ import {
 import ReservationCardPro from "@/features/pro/components/reservations/ReservationCardPro";
 import AlertMessage from "../../../components/feedback/AlertMessage";
 import Seo from "@/components/seo/Seo";
+import { mapApiErrors } from "@/utils/validators";
 
 export default function ReservationsPro() {
   const { user } = useAuth();
@@ -28,11 +29,14 @@ export default function ReservationsPro() {
         const data = await getProReservations(user._id);
         if (mounted) setReservations(data || []);
       } catch (error) {
-        if (mounted)
+        if (mounted) {
+          const apiErrors = mapApiErrors(error?.response?.data);
           setErr(
-            error?.response?.data?.message ||
+            apiErrors._error ||
+              error?.response?.data?.message ||
               "Impossible de charger les réservations."
           );
+        }
       } finally {
         if (mounted) setLoading(false);
       }
@@ -71,10 +75,8 @@ export default function ReservationsPro() {
     }
   };
 
-  // Filtrages
-  const now = new Date();
-
   const reservationsUpcoming = useMemo(() => {
+    const now = new Date();
     return reservations.filter(
       (r) =>
         new Date(`${r.date}T${r.time}:00`) >= now &&
@@ -84,6 +86,7 @@ export default function ReservationsPro() {
   }, [reservations]);
 
   const reservationsPast = useMemo(() => {
+    const now = new Date();
     return reservations.filter(
       (r) =>
         new Date(`${r.date}T${r.time}:00`) < now &&

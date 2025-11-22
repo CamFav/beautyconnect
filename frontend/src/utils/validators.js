@@ -1,21 +1,21 @@
 // frontend/src/utils/validators.js
 
 // === RÈGLES (alignées sur le backend) ===
-const nameRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9'&\-\s]{2,60}$/;
+const nameRegex = /^[\p{L}0-9'&\-\s]{2,60}$/u;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^\s]{8,}$/;
 const phoneRegex = /^(?:\+?\d{1,3}\s?)?(?:\d{6,14})$/;
 const siretRegex = /^\d{14}$/;
 
 // === MESSAGES STANDARD ===
 export const messages = {
-  name: "Le nom doit contenir entre 2 et 60 caractères et peut inclure lettres, chiffres, espaces, tirets ou &.",
+  name: "Le nom doit contenir entre 2 et 60 caracteres et peut inclure lettres, chiffres, espaces, tirets ou &.",
   email: "Adresse email invalide.",
   password:
-    "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.",
-  phone: "Numéro de téléphone invalide (ex: +33611223344).",
-  siret: "Le numéro SIRET doit contenir exactement 14 chiffres.",
-  loginPassword: "Le mot de passe est requis.", // ➕ Ajout cohérent pour les formulaires de connexion
+    "Le mot de passe doit contenir au moins 8 caracteres, une majuscule, une minuscule et un chiffre, sans espace.",
+  phone: "Numero de telephone invalide (ex: +33611223344).",
+  siret: "Le numero SIRET doit contenir exactement 14 chiffres.",
+  loginPassword: "Le mot de passe est requis.",
 };
 
 // === VALIDATIONS GÉNÉRIQUES ===
@@ -51,8 +51,8 @@ export const mapApiErrors = (errorPayload) => {
     for (const e of errorPayload.errors) {
       if (e?.field) out[e.field] = e.message || "Erreur";
     }
-  } else if (errorPayload.message) {
-    out._error = errorPayload.message;
+  } else if (errorPayload.message || errorPayload.error) {
+    out._error = errorPayload.message || errorPayload.error;
   }
   return out;
 };

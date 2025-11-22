@@ -3,6 +3,7 @@ import httpClient from "../../../api/http/httpClient";
 import { Lock, Trash2 } from "lucide-react";
 import StickyFooterButton from "../../../components/ui/StickyFooterButton";
 import AlertMessage from "../../../components/feedback/AlertMessage";
+import { mapApiErrors, messages } from "../../../utils/validators";
 
 export default function SecuritySettings({ token, headers, setMessage }) {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -29,7 +30,7 @@ export default function SecuritySettings({ token, headers, setMessage }) {
     if (newPassword.length < 8) {
       setMessage({
         type: "error",
-        text: "Le mot de passe doit contenir au moins 8 caractères.",
+        text: messages.password,
       });
       return;
     }
@@ -64,11 +65,14 @@ export default function SecuritySettings({ token, headers, setMessage }) {
       setConfirmPassword("");
     } catch (err) {
       console.error("Erreur mot de passe :", err);
+      const apiErrors = mapApiErrors(err?.response?.data);
       setMessage({
         type: "error",
         text:
-          err?.response?.data?.message ||
-          "Impossible de mettre à jour le mot de passe.",
+          apiErrors.currentPassword ||
+          apiErrors.newPassword ||
+          apiErrors._error ||
+          "Impossible de mettre a jour le mot de passe.",
       });
     } finally {
       setSaving(false);
@@ -93,7 +97,6 @@ export default function SecuritySettings({ token, headers, setMessage }) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
 
-      // Si tu utilises un AuthContext :
       if (typeof window !== "undefined") {
         const event = new CustomEvent("logout");
         window.dispatchEvent(event);
@@ -110,10 +113,11 @@ export default function SecuritySettings({ token, headers, setMessage }) {
       }, 2000);
     } catch (err) {
       console.error("Erreur suppression :", err);
+      const apiErrors = mapApiErrors(err?.response?.data);
       setMessage({
         type: "error",
         text:
-          err?.response?.data?.message ||
+          apiErrors._error ||
           "Impossible de supprimer le compte pour le moment.",
       });
     } finally {

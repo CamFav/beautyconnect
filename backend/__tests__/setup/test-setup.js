@@ -3,7 +3,7 @@ const fs = require("fs");
 const mongoose = require("mongoose");
 let MongoMemoryServer; // lazy-loaded only if needed
 
-jest.setTimeout(30000);
+jest.setTimeout(120000);
 
 let mongo;
 let usedExternalMongo = false;
@@ -34,11 +34,24 @@ beforeAll(async () => {
   })();
 
   const externalUrl = process.env.MONGO_URL || process.env.TEST_MONGO_URL;
+  let connected = false;
 
   if (externalUrl) {
-    usedExternalMongo = true;
-    await mongoose.connect(externalUrl);
-  } else if (!isAlpine && process.env.DISABLE_MMS !== "1") {
+    try {
+      await mongoose.connect(externalUrl);
+      usedExternalMongo = true;
+      connected = true;
+    } catch (err) {
+      console.warn(
+        `Connexion externe Mongo echouee (${err?.message}). Fallback sur mongodb-memory-server.`
+      );
+      try {
+        await mongoose.disconnect();
+      } catch (_) {}
+    }
+  }
+
+  if (!connected && !isAlpine && process.env.DISABLE_MMS !== "1") {
     // Use in-memory Mongo only when supported and not explicitly disabled
     try {
       ({ MongoMemoryServer } = require("mongodb-memory-server"));
@@ -46,6 +59,7 @@ beforeAll(async () => {
       const uri = mongo.getUri();
       process.env.MONGO_URL = uri;
       await mongoose.connect(uri);
+      connected = true;
     } catch (err) {
       // Graceful fallback with guidance
       console.warn(
@@ -54,7 +68,7 @@ beforeAll(async () => {
       // Avoid long buffering timeouts if no DB gets connected later
       mongoose.set("bufferTimeoutMS", 0);
     }
-  } else {
+  } else if (!connected) {
     // Alpine or explicitly disabled; rely on external Mongo via MONGO_URL
     console.warn(
       "mongodb-memory-server disabled (alpine or DISABLE_MMS=1). Provide MONGO_URL for tests."

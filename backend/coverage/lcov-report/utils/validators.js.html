@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>7/7</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/5</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -80,39 +80,69 @@
 <a name='L15'></a><a href='#L15'>15</a>
 <a name='L16'></a><a href='#L16'>16</a>
 <a name='L17'></a><a href='#L17'>17</a>
-<a name='L18'></a><a href='#L18'>18</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">104x</span>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">24x</span>
-<span class="cline-any cline-yes">58x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">69x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">24x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Vérifie si l'email a un format standard
-const validateEmail = (email) =&gt; /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const NAME_REGEX = <span class="cstat-no" title="statement not covered" >/^[\p{L}0-9'&amp;\-\s]{2,60}$/u;</span>
+const EMAIL_REGEX = <span class="cstat-no" title="statement not covered" >/^[^\s@]+@[^\s@]+\.[^\s@]+$/;</span>
+const PASSWORD_REGEX = <span class="cstat-no" title="statement not covered" >/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^\s]{8,}$/;</span>
 &nbsp;
-// Vérifie la solidité du mot de passe
-// 8+ caractères, au moins une majuscule, une minuscule et un chiffre
-const validatePassword = (password) =&gt;
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&amp;]{8,}$/.test(password);
+const validateEmail = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(e</span>mail) =&gt; <span class="cstat-no" title="statement not covered" >EMAIL_REGEX.test(email);</span></span>
+const validatePassword = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(p</span>assword) =&gt; <span class="cstat-no" title="statement not covered" >PASSWORD_REGEX.test(password);</span></span>
+const validateName = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(n</span>ame) =&gt; <span class="cstat-no" title="statement not covered" >NAME_REGEX.test(name);</span></span>
 &nbsp;
-// Vérifie le nom d'utilisateur ou le business name
-// Exemples valides : "Camille", "Camille Favriel", "Studio &amp; 2000 Camillé"
-const validateName = (name) =&gt; /^[A-Za-zÀ-ÿ0-9'&amp;\-\s]{2,60}$/.test(name);
+const validationMessages = <span class="cstat-no" title="statement not covered" >{</span>
+  name:
+    "Le nom doit contenir entre 2 et 60 caracteres et peut inclure lettres, chiffres, espaces, tirets ou &amp;.",
+  email: "Adresse email invalide.",
+  password:
+    "Le mot de passe doit contenir au moins 8 caracteres, une majuscule, une minuscule et un chiffre, sans espace.",
+};
 &nbsp;
-module.exports = {
+<span class="cstat-no" title="statement not covered" >module.exports = {</span>
   validateEmail,
   validatePassword,
   validateName,
+  validationMessages,
+  patterns: {
+    NAME_REGEX,
+    EMAIL_REGEX,
+    PASSWORD_REGEX,
+  },
 };
 &nbsp;</pre></td></tr></table></pre>
 
@@ -121,7 +151,7 @@ module.exports = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-29T03:36:29.669Z
+                at 2025-11-21T15:35:40.204Z
             </div>
         <script src="../prettify.js"></script>
         <script>

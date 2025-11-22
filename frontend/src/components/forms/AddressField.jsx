@@ -5,6 +5,7 @@ import { sanitizeInput } from "@/utils/sanitize";
 export default function AddressField({
   label = "Adresse",
   placeholder = "Ex : 10 Rue de la Paix, Paris",
+  hint = "",
   initialValue = "",
   onSelectAddress,
 }) {
@@ -71,6 +72,7 @@ export default function AddressField({
           {label}
         </label>
       )}
+      {hint && <p className="text-xs text-gray-500">{hint}</p>}
       <div className="relative">
         <MapPin className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         <input

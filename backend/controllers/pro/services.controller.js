@@ -1,30 +1,32 @@
 const ProDetails = require("../../models/ProDetails");
 const sanitizeHtml = require("sanitize-html");
 
-// ================================
-// GET mes services (pro connecté)
-// ================================
+const sendError = (res, status, message, field) => {
+  const payload = { message };
+  if (field) {
+    payload.errors = [{ field, message }];
+  }
+  return res.status(status).json(payload);
+};
+
 exports.getMyServices = async (req, res) => {
   try {
     const proId = req.user.id;
     const proDetails = await ProDetails.findOne({ proId }).lean();
 
     if (!proDetails || !Array.isArray(proDetails.services)) {
-      return res.json([]); // retour tableau brut pour compatibilité front
+      return res.json([]);
     }
 
-    res.json(proDetails.services); // tableau direct
+    res.json(proDetails.services);
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
       console.error("Erreur getMyServices :", error);
     }
-    res.status(500).json({ message: "Erreur serveur" });
+    sendError(res, 500, "Erreur serveur.");
   }
 };
 
-// ================================
-// CREATE service
-// ================================
 exports.createService = async (req, res) => {
   try {
     const proId = req.user.id;
@@ -36,24 +38,26 @@ exports.createService = async (req, res) => {
       isNaN(Number(price)) ||
       isNaN(Number(duration))
     ) {
-      return res.status(400).json({
-        message:
-          "Champs requis et valides : name (string), price (number), duration (number)",
-      });
+      return sendError(
+        res,
+        400,
+        "Champs requis et valides : name (string), price (number), duration (number).",
+        "service"
+      );
     }
 
     price = Number(price);
     duration = Number(duration);
     if (price < 0 || duration <= 0) {
-      return res.status(400).json({
-        message: "Le prix et la durée doivent être des valeurs positives.",
-      });
+      return sendError(
+        res,
+        400,
+        "Le prix et la duree doivent etre des valeurs positives.",
+        "price"
+      );
     }
 
-    name = sanitizeHtml(name.trim(), {
-      allowedTags: [],
-      allowedAttributes: {},
-    });
+    name = sanitizeHtml(name.trim(), { allowedTags: [], allowedAttributes: {} });
     description = sanitizeHtml(description?.trim() || "", {
       allowedTags: [],
       allowedAttributes: {},
@@ -68,18 +72,15 @@ exports.createService = async (req, res) => {
     proDetails.services.push(newService);
     await proDetails.save();
 
-    res.status(201).json(newService); // retour direct du service créé
+    res.status(201).json(newService);
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
       console.error("Erreur createService :", error);
     }
-    res.status(500).json({ message: "Erreur serveur" });
+    sendError(res, 500, "Erreur serveur.");
   }
 };
 
-// ================================
-// UPDATE service
-// ================================
 exports.updateService = async (req, res) => {
   try {
     const proId = req.user.id;
@@ -88,14 +89,17 @@ exports.updateService = async (req, res) => {
 
     const proDetails = await ProDetails.findOne({ proId });
     if (!proDetails) {
-      return res
-        .status(404)
-        .json({ message: "Aucun service trouvé pour ce pro." });
+      return sendError(
+        res,
+        404,
+        "Aucun service trouve pour ce professionnel.",
+        "serviceId"
+      );
     }
 
     const service = proDetails.services.id(serviceId);
     if (!service) {
-      return res.status(404).json({ message: "Service introuvable." });
+      return sendError(res, 404, "Service introuvable.", "serviceId");
     }
 
     if (name !== undefined) {
@@ -106,15 +110,15 @@ exports.updateService = async (req, res) => {
     }
     if (price !== undefined) {
       const num = Number(price);
-      if (isNaN(num) || num < 0) {
-        return res.status(400).json({ message: "Prix invalide." });
+      if (Number.isNaN(num) || num < 0) {
+        return sendError(res, 400, "Prix invalide.", "price");
       }
       service.price = num;
     }
     if (duration !== undefined) {
       const num = Number(duration);
-      if (isNaN(num) || num <= 0) {
-        return res.status(400).json({ message: "Durée invalide." });
+      if (Number.isNaN(num) || num <= 0) {
+        return sendError(res, 400, "Duree invalide.", "duration");
       }
       service.duration = num;
     }
@@ -126,18 +130,15 @@ exports.updateService = async (req, res) => {
     }
 
     await proDetails.save();
-    res.json(service); // ✅ retour direct du service mis à jour
+    res.json(service);
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
       console.error("Erreur updateService :", error);
     }
-    res.status(500).json({ message: "Erreur serveur" });
+    sendError(res, 500, "Erreur serveur.");
   }
 };
 
-// ================================
-// DELETE service
-// ================================
 exports.deleteService = async (req, res) => {
   try {
     const proId = req.user.id;
@@ -149,31 +150,28 @@ exports.deleteService = async (req, res) => {
     );
 
     if (updated.modifiedCount === 0) {
-      return res.status(404).json({ message: "Service introuvable." });
+      return sendError(res, 404, "Service introuvable.", "serviceId");
     }
 
-    return res.status(200).json({ message: "Service supprimé avec succès." });
+    return res.status(200).json({ message: "Service supprime avec succes." });
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
       console.error("Erreur deleteService :", error);
     }
-    res.status(500).json({ message: "Erreur serveur" });
+    sendError(res, 500, "Erreur serveur.");
   }
 };
 
-// ================================
-// GET services publics d'un PRO
-// ================================
 exports.getPublicServices = async (req, res) => {
   try {
     const proId = req.params.proId;
     if (!proId) {
-      return res.status(400).json({ message: "proId requis" });
+      return sendError(res, 400, "proId requis.", "proId");
     }
 
     const proDetails = await ProDetails.findOne({ proId }).lean();
     if (!proDetails || !Array.isArray(proDetails.services)) {
-      return res.json([]); // 🔄 tableau brut pour compatibilité
+      return res.json([]);
     }
 
     res.json(proDetails.services);
@@ -181,6 +179,6 @@ exports.getPublicServices = async (req, res) => {
     if (process.env.NODE_ENV !== "production") {
       console.error("Erreur getPublicServices :", error);
     }
-    res.status(500).json({ message: "Erreur serveur" });
+    sendError(res, 500, "Erreur serveur.");
   }
 };

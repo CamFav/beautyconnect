@@ -111,7 +111,7 @@ if (process.env.NODE_ENV === "production") {
   console.log("Rate limiter actif (production)");
 } else {
   adminLimiter = (req, res, next) => next();
-  console.log("Rate limiter désactivé en mode développement");
+  console.log("Rate limiter désactivé en mode dev");
 }
 
 // ========================================
@@ -133,10 +133,8 @@ if (fs.existsSync(frontendPath)) {
       etag: false,
       setHeaders: (res, filePath) => {
         if (filePath.endsWith(".html")) {
-          // Ne pas mettre en cache les fichiers HTML
           res.setHeader("Cache-Control", "no-cache");
         } else {
-          // Cache fort pour les assets (js, css, images…)
           res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
         }
       },

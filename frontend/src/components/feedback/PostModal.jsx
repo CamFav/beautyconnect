@@ -134,6 +134,19 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
     currentUser && localPost.favorites?.includes(currentUser._id);
   const isOwner = currentUser?._id === provider?._id;
 
+  const handleBackdropKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onClose();
+    }
+  };
+
+  const handleModalKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.stopPropagation();
+    }
+  };
+
   const formattedDate = localPost.createdAt
     ? formatDistanceToNow(new Date(localPost.createdAt), {
         addSuffix: true,
@@ -145,6 +158,7 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
     <div
       className="fixed inset-0 flex justify-center items-center z-50 bg-black/40 backdrop-blur-sm overflow-y-auto p-4"
       onClick={onClose}
+      onKeyDown={handleBackdropKeyDown}
       role="dialog"
       aria-modal="true"
       aria-labelledby="post-modal-title"
@@ -155,6 +169,7 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }) {
         ref={modalRef}
         className="bg-white rounded-lg shadow-lg max-w-md w-full relative p-4 space-y-4 outline-none max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={handleModalKeyDown}
       >
         <button
           ref={closeBtnRef}

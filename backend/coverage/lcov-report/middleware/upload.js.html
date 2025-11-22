@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">84.61% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>11/13</span>
+                <span class='fraction'>0/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>3/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">84.61% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>11/13</span>
+                <span class='fraction'>0/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -102,8 +102,8 @@
 <a name='L37'></a><a href='#L37'>37</a>
 <a name='L38'></a><a href='#L38'>38</a>
 <a name='L39'></a><a href='#L39'>39</a>
-<a name='L40'></a><a href='#L40'>40</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
+<a name='L40'></a><a href='#L40'>40</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -112,21 +112,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -140,9 +140,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const multer = require("multer");
-const path = require("path");
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const multer = <span class="cstat-no" title="statement not covered" >require("multer");</span>
+const path = <span class="cstat-no" title="statement not covered" >require("path");</span>
 &nbsp;
 /**
  * Middleware d'upload sécurisé (mémoire)
@@ -151,22 +151,22 @@ const path = require("path");
  * - Vérifie extension + MIME type
  */
 &nbsp;
-const storage = multer.memoryStorage();
+const storage = <span class="cstat-no" title="statement not covered" >multer.memoryStorage();</span>
 &nbsp;
-const upload = multer({
+const upload = <span class="cstat-no" title="statement not covered" >multer({</span>
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 Mo max
-  fileFilter: (req, file, cb) =&gt; {
-    try {
-      const fileTypes = /jpeg|jpg|png|webp/;
-      const extValid = fileTypes.test(
+  fileFilter: <span class="fstat-no" title="function not covered" >(r</span>eq, file, cb) =&gt; {
+<span class="cstat-no" title="statement not covered" >    try {</span>
+      const fileTypes = <span class="cstat-no" title="statement not covered" >/jpeg|jpg|png|webp/;</span>
+      const extValid = <span class="cstat-no" title="statement not covered" >fileTypes.test(</span>
         path.extname(file.originalname).toLowerCase()
       );
-      const mimeValid = fileTypes.test(file.mimetype);
+      const mimeValid = <span class="cstat-no" title="statement not covered" >fileTypes.test(file.mimetype);</span>
 &nbsp;
-      if (extValid &amp;&amp; mimeValid) {
-        cb(null, true);
-      } else <span class="missing-if-branch" title="else path not taken" >E</span>{
+<span class="cstat-no" title="statement not covered" >      if (extValid &amp;&amp; mimeValid) {</span>
+<span class="cstat-no" title="statement not covered" >        cb(null, true);</span>
+      } else {
 <span class="cstat-no" title="statement not covered" >        cb(</span>
           new Error(
             "Type de fichier non autorisé (jpg, jpeg, png, webp uniquement)."
@@ -179,7 +179,7 @@ const upload = multer({
   },
 });
 &nbsp;
-module.exports = upload;
+<span class="cstat-no" title="statement not covered" >module.exports = upload;</span>
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -187,7 +187,7 @@ module.exports = upload;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-29T03:36:29.669Z
+                at 2025-11-21T15:35:40.204Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -5,13 +5,15 @@ export default function Step1ActivityType({ activityType, setActivityType }) {
     {
       key: "salon",
       label: "Je travaille dans un salon",
-      description: "Vous faites partie d’un établissement ou d’une équipe.",
+      description:
+        "Lieu fixe, adresse complète obligatoire pour être visible et recevoir des clients.",
       Icon: Store,
     },
     {
       key: "freelance",
       label: "Je suis freelance",
-      description: "Vous travaillez à votre compte, seul ou à domicile.",
+      description:
+        "Vous travaillez à votre compte. Ville obligatoire, adresse optionnelle (exercice à domicile).",
       Icon: BriefcaseBusiness,
     },
   ];

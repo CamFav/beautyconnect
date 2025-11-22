@@ -1,7 +1,6 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../../../context/AuthContextBase";
-import httpClient from "../../../api/http/httpClient";
 
 import Step1ActivityType from "@/features/auth/components/register-pro/steps/Step1ActivityType";
 import Step2Type from "@/features/auth/components/register-pro/steps/Step2Type";
@@ -17,6 +16,7 @@ import {
   validatePassword,
   validateName,
   messages,
+  mapApiErrors,
 } from "../../../utils/validators";
 import Seo from "@/components/seo/Seo";
 
@@ -31,7 +31,7 @@ export default function RegisterPro() {
   const [account, setAccount] = useState({
     name: sanitizeName(prefill.name || ""),
     email: sanitizeInput(prefill.email || ""),
-    password: sanitizeInput(prefill.password || ""),
+    password: prefill.password || "",
     confirmPassword: "",
   });
 
@@ -41,6 +41,7 @@ export default function RegisterPro() {
   const [formSuccess, setFormSuccess] = useState("");
   const [step, setStep] = useState(1);
   const [consentGiven, setConsentGiven] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // --- États liés à l'activité professionnelle ---
   const [activityType, setActivityType] = useState("");
@@ -79,6 +80,7 @@ export default function RegisterPro() {
         if (activityType === "salon") {
           return (
             salonName.trim().length > 1 &&
+            locationField.address.trim().length > 5 &&
             locationField.city.trim() &&
             locationField.country.trim()
           );
@@ -116,7 +118,11 @@ export default function RegisterPro() {
   // --- Gestion des champs du compte ---
   const handleAccountChange = (field, value) => {
     const cleanedValue =
-      field === "name" ? sanitizeName(value) : sanitizeInput(value);
+      field === "name"
+        ? sanitizeName(value)
+        : field === "email"
+        ? sanitizeInput(value)
+        : value;
 
     setAccount((prev) => ({ ...prev, [field]: cleanedValue }));
     setFormError("");
@@ -146,6 +152,7 @@ export default function RegisterPro() {
   const submitPro = async () => {
     setFormError("");
     setFormSuccess("");
+    if (submitting) return;
 
     if (
       !validateName(account.name) ||
@@ -163,13 +170,18 @@ export default function RegisterPro() {
     }
 
     const businessName =
-      activityType === "salon" ? salonName.trim() : freelanceName.trim();
+      activityType === "salon"
+        ? salonName.trim()
+        : freelanceName.trim() || account.name.trim();
 
     const proPayload = {
       businessName,
       siret: siret.trim(),
       location: {
-        address: locationField.address?.trim() || "",
+        address:
+          activityType === "salon"
+            ? locationField.address?.trim() || ""
+            : locationField.address?.trim() || "",
         city: locationField.city?.trim() || "",
         country: locationField.country?.trim() || "France",
         latitude: locationField.latitude ?? null,
@@ -183,8 +195,8 @@ export default function RegisterPro() {
       ],
       experience,
     };
-
     try {
+      setSubmitting(true);
       const payload = {
         name: account.name.trim(),
         email: account.email.trim(),
@@ -195,16 +207,20 @@ export default function RegisterPro() {
       };
 
       await handleRegister(payload);
+      setSubmitting(false);
       setFormSuccess("Inscription réussie ! Vous allez être redirigé...");
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       console.error("Erreur REGISTER PRO :", err?.response?.data || err);
-      const backendMessage = err?.response?.data?.message;
-      if (backendMessage?.toLowerCase().includes("email")) {
-        setEmailError("Cet email est déjà utilisé.");
-        return;
+      const apiErrors = mapApiErrors(err?.response?.data);
+      if (apiErrors.email) setEmailError(apiErrors.email);
+      if (apiErrors.password || apiErrors.newPassword) {
+        setFormError(apiErrors.password || apiErrors.newPassword);
+      } else if (apiErrors._error) {
+        setFormError(apiErrors._error);
+      } else {
+        setFormError("Erreur lors de l'inscription pro.");
       }
-      setFormError("Erreur lors de l'inscription pro.");
     }
   };
 
@@ -458,9 +474,9 @@ export default function RegisterPro() {
                         <button
                           type="button"
                           onClick={submitPro}
-                          disabled={!canGoNext() || !consentGiven}
+                          disabled={!canGoNext() || !consentGiven || submitting}
                           className={`px-4 py-2 rounded ${
-                            canGoNext() && consentGiven
+                            canGoNext() && consentGiven && !submitting
                               ? "bg-black text-white hover:bg-gray-900 transition"
                               : "bg-gray-300 text-gray-600 cursor-not-allowed"
                           }`}

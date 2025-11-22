@@ -14,6 +14,7 @@ import {
   validateEmail,
   validatePassword,
   validateName,
+  messages,
 } from "../../../utils/validators";
 import Seo from "@/components/seo/Seo";
 import Footer from "@/components/layout/Footer";
@@ -31,7 +32,12 @@ export default function Landing() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    let newValue = name === "name" ? sanitizeName(value) : sanitizeInput(value);
+    const newValue =
+      name === "name"
+        ? sanitizeName(value)
+        : name === "email"
+        ? sanitizeInput(value)
+        : value;
     setFormData((prev) => ({ ...prev, [name]: newValue }));
 
     switch (name) {
@@ -52,7 +58,7 @@ export default function Landing() {
       case "password":
         setErrors((prev) => ({
           ...prev,
-          password: !validatePassword(newValue) ? "Minimum 8 caractères" : "",
+          password: !validatePassword(newValue) ? messages.password : "",
         }));
         break;
       default:
@@ -68,10 +74,10 @@ export default function Landing() {
       !validatePassword(formData.password)
     ) {
       setErrors({
-        name: !validateName(formData.name) ? "Nom invalide" : "",
-        email: !validateEmail(formData.email) ? "Email invalide" : "",
+        name: !validateName(formData.name) ? messages.name : "",
+        email: !validateEmail(formData.email) ? messages.email : "",
         password: !validatePassword(formData.password)
-          ? "Mot de passe trop court"
+          ? messages.password
           : "",
       });
       return;
@@ -133,7 +139,7 @@ export default function Landing() {
           <div className="md:w-1/2 text-center md:text-left">
             <h1
               id="hero-title"
-              className="text-4xl font-bold text-gray-900 mb-4"
+              className="text-4xl font-bold text-blue-600 mb-4"
             >
               BeautyConnect
             </h1>

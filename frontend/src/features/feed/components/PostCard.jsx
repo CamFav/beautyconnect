@@ -1,29 +1,4 @@
 import { Link } from "react-router-dom";
-
-  const blockOwnerAction = () => {
-    toast.error(ownerActionNotAllowed, {
-      duration: 3000,
-    });
-  };
-
-  const onLikeClick = () => {
-    if (isOwner) return blockOwnerAction();
-    if (!user) {
-      toast.error(authRequired("liker un post"));
-      return;
-    }
-    if (post._id) handleLike?.(post._id);
-  };
-
-  const onFavoriteClick = () => {
-    if (isOwner) return blockOwnerAction();
-    if (!user) {
-      toast.error(authRequired("ajouter un favori"));
-      return;
-    }
-    if (post._id) handleFavorite?.(post._id);
-  };
-
 import Avatar from "../../../components/ui/Avatar";
 import { Heart, Star, Calendar } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -61,11 +36,27 @@ export default function PostCard({
     return "Prestataire";
   })();
 
+  const statusLabel =
+    provider?.proProfile?.status === "salon"
+      ? "Salon"
+      : provider?.proProfile?.status === "freelance"
+      ? "Freelance"
+      : null;
+  const exerciseLabel = (() => {
+    const types = provider?.proProfile?.exerciseType;
+    if (!Array.isArray(types) || types.length === 0) return null;
+    const labels = [];
+    if (types.includes("domicile")) labels.push("A domicile");
+    if (types.includes("exterieur")) labels.push("Exterieur");
+    return labels.join(" + ");
+  })();
+
   const isLiked =
     user && Array.isArray(post.likes) && post.likes.includes(user._id);
   const isFavorited =
     user && Array.isArray(post.favorites) && post.favorites.includes(user._id);
-  const isOwner = user?._id && provider?._id && String(user._id) === String(provider._id);
+  const isOwner =
+    user?._id && provider?._id && String(user._id) === String(provider._id);
 
   const description = sanitize(post.description || "");
 
@@ -110,7 +101,6 @@ export default function PostCard({
       )}
 
       <div className="p-4 space-y-4">
-        {/* Auteur */}
         {provider ? (
           <Link
             to={profileLink}
@@ -120,6 +110,20 @@ export default function PostCard({
             <div className="flex flex-col leading-tight">
               <span className="font-semibold text-sm">{displayName}</span>
               <span className="text-xs text-gray-500">{categories}</span>
+              {(statusLabel || exerciseLabel) && (
+                <div className="flex flex-wrap gap-2 mt-1 text-[11px] text-gray-500">
+                  {statusLabel && (
+                    <span className="px-2 py-0.5 bg-gray-100 rounded-full">
+                      {statusLabel}
+                    </span>
+                  )}
+                  {exerciseLabel && (
+                    <span className="px-2 py-0.5 bg-gray-100 rounded-full">
+                      {exerciseLabel}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </Link>
         ) : (
@@ -129,7 +133,6 @@ export default function PostCard({
           </div>
         )}
 
-        {/* Description (tronquée avec ellipsis) */}
         <p
           className="text-sm text-gray-700 leading-relaxed line-clamp-3 overflow-hidden text-ellipsis"
           style={{
@@ -143,7 +146,6 @@ export default function PostCard({
           {description}
         </p>
 
-        {/* Actions */}
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-6">
             <button
@@ -191,7 +193,7 @@ export default function PostCard({
               className="flex items-center gap-1 hover:text-green-600 transition"
             >
               <Calendar size={18} />
-              <span>Réserver</span>
+              <span>Reserver</span>
             </Link>
           )}
         </div>
@@ -199,4 +201,3 @@ export default function PostCard({
     </div>
   );
 }
-

@@ -23,13 +23,15 @@ const generateToken = (user) => {
     );
   }
 
+  // Payload pour limiter l'exposition des informations dans le token
   const payload = {
     sub: String(userId),
     email: user.email || null,
-    // Harmonisation avec le middleware protect
+
     activeRole: user.activeRole || user.role || null,
   };
 
+  // Token stateless pour aucune session stockée côté serveur
   return jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
     issuer: JWT_ISSUER,

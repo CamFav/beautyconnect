@@ -1,62 +1,79 @@
 const Reservation = require("../../models/Reservation");
 const ProDetails = require("../../models/ProDetails");
-const User = require("../../models/User");
 
-// =====================
-// Création d'une réservation
-// =====================
+const sendError = (res, status, message, field) => {
+  const payload = { message };
+  if (field) {
+    payload.errors = [{ field, message }];
+  }
+  return res.status(status).json(payload);
+};
+
 exports.createReservation = async (req, res) => {
   try {
-    console.log("BODY REÇU :", req.body);
     const clientId = req.user.id;
     const { proId, serviceId, date, time } = req.body;
-    let { location } = req.body; // en let pour pouvoir le modifier
+    let { location } = req.body;
 
     if (!proId || !serviceId || !date || !time) {
-      return res.status(400).json({ error: "Champs requis manquants" });
+      return sendError(res, 400, "Champs requis manquants.", "reservation");
     }
 
     const parsedDate = new Date(date);
-    if (isNaN(parsedDate.getTime())) {
-      return res
-        .status(400)
-        .json({ error: "Date invalide (format attendu: YYYY-MM-DD)" });
+    if (Number.isNaN(parsedDate.getTime())) {
+      return sendError(
+        res,
+        400,
+        "Date invalide (format attendu: YYYY-MM-DD).",
+        "date"
+      );
     }
 
     if (!/^\d{2}:\d{2}$/.test(time)) {
-      return res
-        .status(400)
-        .json({ error: "Heure invalide (format attendu: HH:MM)" });
+      return sendError(
+        res,
+        400,
+        "Heure invalide (format attendu: HH:MM).",
+        "time"
+      );
     }
 
-    // Vérifie que la date/heure ne sont pas dans le passé
     const now = new Date();
     const selectedDateTime = new Date(`${date}T${time}:00`);
     if (selectedDateTime < now) {
-      return res.status(400).json({
-        error:
-          "Impossible de réserver un créneau passé. Choisissez un horaire futur.",
-      });
+      return sendError(
+        res,
+        400,
+        "Impossible de reserver un creneau passe. Choisissez un horaire futur.",
+        "time"
+      );
     }
 
     const details = await ProDetails.findOne({ proId });
-    if (!details) return res.status(404).json({ error: "Pro introuvable" });
+    if (!details) {
+      return sendError(res, 404, "Professionnel introuvable.", "proId");
+    }
 
     const service = details.services.id(serviceId);
-    if (!service) return res.status(404).json({ error: "Service introuvable" });
+    if (!service) {
+      return sendError(res, 404, "Service introuvable.", "serviceId");
+    }
 
     const { name: serviceName, price, duration } = service;
 
     const dayEnglish = parsedDate
       .toLocaleString("en-US", { weekday: "long" })
       .toLowerCase();
-    console.log("Jour anglais utilisé :", dayEnglish);
 
-    // filtre correctement par le champ 'day' de la base
-    const dayRanges = details.availability
-      .filter((item) => item.enabled)
-      .filter((item) => item.day.toLowerCase() === dayEnglish)
-      .flatMap((item) => item.slots || []);
+    const dayRanges =
+      details.availability
+        ?.filter((item) => item.enabled)
+        ?.filter(
+          (item) =>
+            typeof item.day === "string" &&
+            item.day.toLowerCase() === dayEnglish
+        )
+        ?.flatMap((item) => item.slots || []) || [];
 
     const requestedTime = new Date(`${date}T${time}:00`);
     const isInRange = dayRanges.some((range) => {
@@ -66,21 +83,29 @@ exports.createReservation = async (req, res) => {
       return requestedTime >= start && requestedTime < end;
     });
 
-    if (!isInRange)
-      return res.status(400).json({
-        error: "Ce créneau n'est pas disponible dans les horaires du pro",
-      });
+    if (!isInRange) {
+      return sendError(
+        res,
+        400,
+        "Ce creneau n'est pas disponible dans les horaires du pro.",
+        "time"
+      );
+    }
 
     const conflict = await Reservation.findOne({ proId, date, time });
-    if (conflict)
-      return res.status(400).json({ error: "Ce créneau est déjà réservé" });
+    if (conflict) {
+      return sendError(
+        res,
+        400,
+        "Ce creneau est deja reserve.",
+        "time"
+      );
+    }
 
-    // Conversion sécurisée de l'objet location en string
     if (typeof location === "object" && location !== null) {
-      const loc = location;
-      location = loc.city
-        ? `${loc.city}${loc.country ? ", " + loc.country : ""}`
-        : JSON.stringify(loc);
+      const city = location.city ? location.city : "";
+      const country = location.country ? `, ${location.country}` : "";
+      location = city ? `${city}${country}` : JSON.stringify(location);
     }
 
     const reservation = await Reservation.create({
@@ -98,13 +123,10 @@ exports.createReservation = async (req, res) => {
     return res.json(reservation);
   } catch (err) {
     console.error("Erreur createReservation:", err);
-    return res.status(500).json({ error: "Erreur serveur" });
+    return sendError(res, 500, "Erreur serveur.");
   }
 };
 
-// =====================
-// Récupérer réservations d’un client
-// =====================
 exports.getByClient = async (req, res) => {
   try {
     const { clientId } = req.params;
@@ -122,31 +144,25 @@ exports.getByClient = async (req, res) => {
     return res.json(reservations);
   } catch (err) {
     console.error("Erreur getByClient:", err);
-    return res.status(500).json({ error: "Erreur serveur" });
+    return sendError(res, 500, "Erreur serveur.");
   }
 };
 
-// =====================
-// Récupérer réservations d’un pro
-// =====================
 exports.getByPro = async (req, res) => {
   try {
     const { proId } = req.params;
 
     const reservations = await Reservation.find({ proId })
-      .populate("clientId", "name email") // récupère nom du client
+      .populate("clientId", "name email avatarClient")
       .sort({ date: 1, time: 1 });
 
     return res.json(reservations);
   } catch (err) {
     console.error("Erreur getByPro:", err);
-    return res.status(500).json({ error: "Erreur serveur" });
+    return sendError(res, 500, "Erreur serveur.");
   }
 };
 
-// =====================
-// Modifier le statut d'une réservation
-// =====================
 exports.updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -158,12 +174,13 @@ exports.updateStatus = async (req, res) => {
       { new: true }
     );
 
-    if (!reservation)
-      return res.status(404).json({ error: "Réservation introuvable" });
+    if (!reservation) {
+      return sendError(res, 404, "Reservation introuvable.", "id");
+    }
 
     return res.json(reservation);
   } catch (err) {
     console.error("Erreur updateStatus:", err);
-    return res.status(500).json({ error: "Erreur serveur" });
+    return sendError(res, 500, "Erreur serveur.");
   }
 };

@@ -4,7 +4,7 @@ const { protect } = require("../middleware/auth");
 const requireRole = require("../middleware/roles");
 const upload = require("../middleware/upload");
 const User = require("../models/User");
-const { validateName } = require("../utils/validators");
+const { validateName, validationMessages } = require("../utils/validators");
 
 const {
   updateRole,
@@ -40,7 +40,6 @@ router.patch("/pro-profile", protect, updateProProfile);
 router.patch(
   "/pro/header",
   protect,
-  // Traite d'abord l'upload pour pouvoir répondre 400 si aucun fichier n'est fourni
   upload.single("header"),
   (req, res, next) => {
     if (!req.file) {
@@ -50,6 +49,7 @@ router.patch(
   },
   // Puis contrôle du rôle
   requireRole("pro"),
+
   updateProHeaderImage
 );
 
@@ -97,8 +97,7 @@ router.put("/upgrade", protect, requireRole("client"), async (req, res) => {
         errors: [
           {
             field: "businessName",
-            message:
-              "Nom du commerce invalide (2-60 caractères, lettres/chiffres autorisés)",
+            message: validationMessages.name,
           },
         ],
       });
@@ -120,6 +119,18 @@ router.put("/upgrade", protect, requireRole("client"), async (req, res) => {
           {
             field: "location",
             message: "Les champs city et country sont obligatoires.",
+          },
+        ],
+      });
+    }
+
+    if (status === "salon" && !location.address?.trim()) {
+      return res.status(400).json({
+        message: "Erreur de validation",
+        errors: [
+          {
+            field: "location.address",
+            message: "L'adresse complète est requise pour un salon.",
           },
         ],
       });

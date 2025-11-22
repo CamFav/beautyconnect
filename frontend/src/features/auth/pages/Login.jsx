@@ -6,7 +6,6 @@ import AlertMessage from "../../../components/feedback/AlertMessage";
 import { Calendar, Heart } from "lucide-react";
 import {
   validateLoginForm,
-  messages,
   mapApiErrors,
 } from "../../../utils/validators";
 import Seo from "@/components/seo/Seo";

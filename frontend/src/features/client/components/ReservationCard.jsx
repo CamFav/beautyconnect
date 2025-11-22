@@ -73,6 +73,13 @@ export default function ReservationCard({ reservation, onAction }) {
     }
   };
 
+  const handleProfileKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleOpenProfile();
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row justify-between border border-gray-200 rounded-lg p-5 bg-white shadow-sm relative">
       {/* Badge dynamique */}
@@ -92,6 +99,8 @@ export default function ReservationCard({ reservation, onAction }) {
           className="cursor-pointer flex-shrink-0"
           role="button"
           aria-label={`Ouvrir le profil de ${safeDisplayName}`}
+          tabIndex={0}
+          onKeyDown={handleProfileKeyDown}
         >
           <Avatar
             src={avatarSrc}
@@ -109,6 +118,8 @@ export default function ReservationCard({ reservation, onAction }) {
             className="text-sm text-gray-700 cursor-pointer"
             onClick={handleOpenProfile}
             role="button"
+            tabIndex={0}
+            onKeyDown={handleProfileKeyDown}
           >
             {safeDisplayName}
           </p>

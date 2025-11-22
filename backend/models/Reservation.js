@@ -1,19 +1,25 @@
 const mongoose = require("mongoose");
 
+// ========================================
+// Schéma Réservation
+// ========================================
 const reservationSchema = new mongoose.Schema(
   {
+    // Références aux utilisateurs
     clientId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
     },
+    // Référence aux professionnels
     proId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
     },
+    // Détails de la réservation
     serviceName: { type: String, required: true, trim: true },
     price: { type: Number, required: true, min: 0 },
     duration: { type: Number, required: true, min: 1 },

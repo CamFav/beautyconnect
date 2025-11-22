@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Avatar from "../../../components/ui/Avatar";
 import AlertMessage from "../../../components/feedback/AlertMessage";
 
@@ -8,11 +8,13 @@ import { useAuth } from "../../../context/AuthContextBase";
 import httpClient from "../../../api/http/httpClient";
 import { toast } from "react-hot-toast";
 import { authRequired } from "@/utils/errorMessages";
+import { mapApiErrors } from "@/utils/validators";
 
 export default function FeedSidebar({ selectedCity, posts, cityActive }) {
   const { token } = useAuth();
   const [artistsData, setArtistsData] = useState({ artists: [], top: [] });
   const [randomArtists, setRandomArtists] = useState([]);
+  const artistsKeyRef = useRef("");
   const [following, setFollowing] = useState({});
   const [alert, setAlert] = useState(null);
 
@@ -61,11 +63,12 @@ export default function FeedSidebar({ selectedCity, posts, cityActive }) {
       setFollowing((prev) => ({ ...prev, [proId]: data.following }));
     } catch (err) {
       console.error("Erreur API follow/unfollow :", err);
+      const apiErrors = mapApiErrors(err?.response?.data);
       setAlert({
         type: "error",
         message:
-          err.response?.data?.message ||
-          "Une erreur est survenue lors de l’action de suivi.",
+          apiErrors._error ||
+          "Une erreur est survenue lors de l'action de suivi.",
       });
     }
   };
@@ -87,6 +90,11 @@ export default function FeedSidebar({ selectedCity, posts, cityActive }) {
       if (provider?._id) artistsMap.set(provider._id, provider);
     });
     const allArtists = Array.from(artistsMap.values());
+    const artistsKey = allArtists
+      .map((a) => a?._id)
+      .filter(Boolean)
+      .sort()
+      .join(",");
 
     const filteredArtists = cityActive
       ? allArtists.filter(
@@ -121,11 +129,15 @@ export default function FeedSidebar({ selectedCity, posts, cityActive }) {
 
     setArtistsData({ artists: filteredArtists, top });
 
+    // re-tire seulement si l'ensemble d'artistes change
     if (!cityActive) {
-      const shuffled = [...allArtists]
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 5);
-      setRandomArtists(shuffled);
+      if (artistsKeyRef.current !== artistsKey) {
+        artistsKeyRef.current = artistsKey;
+        const shuffled = [...allArtists]
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 5);
+        setRandomArtists(shuffled);
+      }
     }
   }, [posts, cityActive, selectedCity]);
 
@@ -253,4 +265,3 @@ export default function FeedSidebar({ selectedCity, posts, cityActive }) {
     </aside>
   );
 }
-

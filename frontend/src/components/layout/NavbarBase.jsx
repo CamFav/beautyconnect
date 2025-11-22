@@ -7,7 +7,7 @@ export default function NavbarBase({ children }) {
         {/* Logo */}
         <button
           onClick={() => (window.location.href = "/")}
-          className="text-2xl font-semibold tracking-tight"
+          className="text-2xl font-semibold tracking-tight text-blue-600"
         >
           BeautyConnect
         </button>
