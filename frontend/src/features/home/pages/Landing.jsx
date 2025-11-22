@@ -44,9 +44,7 @@ export default function Landing() {
       case "name":
         setErrors((prev) => ({
           ...prev,
-          name: !validateName(newValue)
-            ? "Nom invalide. Exemple : Camille Favriel"
-            : "",
+          name: !validateName(newValue) ? messages.name : "",
         }));
         break;
       case "email":
@@ -88,7 +86,7 @@ export default function Landing() {
         prefill: {
           name: formData.name.trim(),
           email: formData.email.trim(),
-          password: formData.password.trim(),
+          password: formData.password,
         },
       },
     });
