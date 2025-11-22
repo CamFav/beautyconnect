@@ -56,8 +56,10 @@ router.get(
 // ========================================
 router.post(
   "/",
-  protect,
-  upload.single("media"),
+  protect, // Authentification JWT
+  upload.single("media"), // Upload image
+
+  // Validation + sanitisation
   [
     body("description")
       .optional()
@@ -68,31 +70,22 @@ router.post(
     body("category").optional().trim().escape(),
   ],
   validate,
+
   async (req, res) => {
-    try {
-      if (!req.file)
-        return res.status(400).json({ message: "Aucun fichier uploadé." });
+    if (!req.file)
+      return res.status(400).json({ message: "Aucun fichier uploadé." });
 
-      allowOnly(["description", "category"], req.body);
+    allowOnly(["description", "category"], req.body); // Anti-injection
+    const result = await uploadToCloudinary(req.file.buffer);
 
-      const description = req.body.description || "";
-      const category = req.body.category || "other";
+    const newPost = await Post.create({
+      provider: req.user.id,
+      mediaUrl: result.secure_url,
+      description: req.body.description || "",
+      category: req.body.category || "other",
+    });
 
-      const result = await uploadToCloudinary(req.file.buffer);
-
-      const newPost = await Post.create({
-        provider: req.user.id,
-        mediaUrl: result.secure_url,
-        description,
-        category,
-      });
-
-      res.status(201).json({ message: "Post créé avec succès", post: newPost });
-    } catch (err) {
-      if (process.env.NODE_ENV !== "production")
-        console.error("Erreur POST /posts:", err);
-      res.status(500).json({ message: "Erreur serveur" });
-    }
+    res.status(201).json(newPost);
   }
 );
 
