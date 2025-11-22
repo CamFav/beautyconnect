@@ -1,6 +1,9 @@
 const bcrypt = require("bcryptjs");
 const sanitizeHtml = require("sanitize-html");
 const BaseUser = require("../../models/User");
+const ProDetails = require("../../models/ProDetails");
+const Post = require("../../models/Post");
+const Reservation = require("../../models/Reservation");
 const { generateToken } = require("../../utils/jwt");
 const cloudinary = require("../../config/cloudinary");
 const {
@@ -466,6 +469,33 @@ const deleteAccount = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Utilisateur introuvable." });
     }
+
+    const cleanLikes = Post.updateMany(
+      { likes: userId },
+      { $pull: { likes: userId }, $inc: { likesCount: -1 } }
+    );
+    const cleanFavorites = Post.updateMany(
+      { favorites: userId },
+      { $pull: { favorites: userId }, $inc: { favoritesCount: -1 } }
+    );
+
+    await Promise.all([
+      Reservation.deleteMany({
+        $or: [{ clientId: userId }, { proId: userId }],
+      }),
+      ProDetails.deleteOne({ proId: userId }),
+      Post.deleteMany({ provider: userId }),
+      cleanLikes,
+      cleanFavorites,
+      BaseUser.updateMany(
+        { followers: userId },
+        { $pull: { followers: userId } }
+      ),
+      BaseUser.updateMany(
+        { following: userId },
+        { $pull: { following: userId } }
+      ),
+    ]);
 
     await BaseUser.findByIdAndDelete(userId);
 
