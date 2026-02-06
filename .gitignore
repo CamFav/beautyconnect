@@ -20,6 +20,7 @@ mongo_data/
 .env.test
 .env.production
 .env.development
+.env.example
 
 dist/login.json
 role.json
