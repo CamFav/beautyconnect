@@ -2,7 +2,7 @@
 # FRONTEND – Mode développement
 # ==============================
 
-FROM node:20
+FROM node:20-alpine
 
 # Dossier de travail
 WORKDIR /app
@@ -11,7 +11,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Installe les dépendances (avec compatibilité React 19)
-RUN npm install --legacy-peer-deps
+RUN npm ci --legacy-peer-deps
 
 # Copie le reste du code source
 COPY . .

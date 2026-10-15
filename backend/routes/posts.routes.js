@@ -72,20 +72,26 @@ router.post(
   validate,
 
   async (req, res) => {
-    if (!req.file)
-      return res.status(400).json({ message: "Aucun fichier uploadé." });
+    try {
+      if (!req.file)
+        return res.status(400).json({ message: "Aucun fichier uploadé." });
 
-    allowOnly(["description", "category"], req.body); // Anti-injection
-    const result = await uploadToCloudinary(req.file.buffer);
+      allowOnly(["description", "category"], req.body); // Anti-injection
+      const result = await uploadToCloudinary(req.file.buffer);
 
-    const newPost = await Post.create({
-      provider: req.user.id,
-      mediaUrl: result.secure_url,
-      description: req.body.description || "",
-      category: req.body.category || "other",
-    });
+      const newPost = await Post.create({
+        provider: req.user.id,
+        mediaUrl: result.secure_url,
+        description: req.body.description || "",
+        category: req.body.category || "other",
+      });
 
-    res.status(201).json(newPost);
+      res.status(201).json(newPost);
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production")
+        console.error("Erreur POST /posts:", err);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
   }
 );
 

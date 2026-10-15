@@ -1,7 +1,4 @@
 services:
-  # ============================
-  # FRONTEND (Build + Serve)
-  # ============================
   frontend:
     build:
       context: ./frontend
@@ -12,77 +9,46 @@ services:
       - backend
     networks:
       - beautyconnect_net
-    restart: always
+    restart: unless-stopped
 
-  # ============================
-  # BACKEND (Production)
-  # ============================
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     ports:
       - "8080:5000"
-    env_file:
-      - ./backend/.env.production
     environment:
-      - NODE_ENV=production
-      - MONGO_URL=mongodb://beautyconnect_app:StrongPassword123!@mongo:27017/beautyconnect?authSource=admin
-    command: node server.js
+      NODE_ENV: production
+      PORT: 5000
+      MONGO_URL: mongodb://${MONGO_ROOT_USERNAME:?Set MONGO_ROOT_USERNAME in the shell}:${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD in the shell}@mongo:27017/beautyconnect?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the shell}
+      CORS_ORIGINS: ${CORS_ORIGINS:?Set CORS_ORIGINS in the shell}
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     networks:
       - beautyconnect_net
-    restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 512M
+    restart: unless-stopped
 
-  # ============================
-  # MONGO DATABASE (avec auth)
-  # ============================
   mongo:
     image: mongo:6
-    restart: always
-    ports:
-      - "27017:27017"
+    restart: unless-stopped
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=beautyconnect_app
-      - MONGO_INITDB_ROOT_PASSWORD=StrongPassword123!
-      - MONGO_INITDB_DATABASE=beautyconnect
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?Set MONGO_ROOT_USERNAME in the shell}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD in the shell}
+      MONGO_INITDB_DATABASE: beautyconnect
     volumes:
       - mongo_data:/data/db
-      - mongo_backup:/data/backup
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --username \"$$MONGO_INITDB_ROOT_USERNAME\" --password \"$$MONGO_INITDB_ROOT_PASSWORD\" --authenticationDatabase admin --eval 'db.runCommand({ ping: 1 }).ok' localhost:27017/admin"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
     networks:
       - beautyconnect_net
 
-  # ============================
-  # MONGO BACKUP (automatique)
-  # ============================
-  mongo-backup:
-    image: alpine:3.19
-    container_name: mongo_backup
-    restart: always
-    volumes:
-      - ./backup:/backup
-      - mongo_backup:/data/backup
-    depends_on:
-      - mongo
-    networks:
-      - beautyconnect_net
-    command: >
-      sh -c "apk add --no-cache mongodb-tools &&
-             echo '0 2 * * * /backup/backup.sh >> /var/log/cron.log 2>&1' > /etc/crontabs/root &&
-             crond -f -d 8"
-
-# ============================
-# PERSISTENCE & NETWORK
-# ============================
 volumes:
   mongo_data:
-  mongo_backup:
 
 networks:
   beautyconnect_net:

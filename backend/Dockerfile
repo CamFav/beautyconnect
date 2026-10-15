@@ -9,16 +9,16 @@ WORKDIR /app
 COPY package*.json ./
 
 # Définition du contexte d’environnement
-ARG NODE_ENV=production
+ARG NODE_ENV=development
 ENV NODE_ENV=$NODE_ENV
 
 # Installation :
 # - En mode test : toutes les dépendances (incl. Jest)
 # - En prod : uniquement les dépendances nécessaires à l’exécution
-RUN if [ "$NODE_ENV" = "test" ]; then \
-      echo "Installing all dependencies for tests..." && npm ci; \
+RUN if [ "$NODE_ENV" = "production" ]; then \
+      npm ci --omit=dev; \
     else \
-      echo "Installing production dependencies only..." && npm ci --only=production; \
+      npm ci --include=dev; \
     fi
 
 # Copie du code source complet (pour disposer de tous les dossiers dans le build)
@@ -44,11 +44,11 @@ COPY --from=build /app/controllers ./controllers
 COPY --from=build /app/package*.json ./
 
 # Variables d’environnement
-ENV NODE_ENV=production
-ENV PORT=8080
+ENV NODE_ENV=development
+ENV PORT=5000
 
 # Expose le port d’écoute
-EXPOSE 8080
+EXPOSE 5000
 
 # Commande de démarrage
 CMD ["node", "server.js"]

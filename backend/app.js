@@ -125,6 +125,20 @@ app.use(express.json({ limit: "10kb" }));
 // ========================================
 app.use(compression());
 
+// Les visuels générés par le seed local sont exposés uniquement en développement.
+const demoAssetsPath = path.join(__dirname, "seed", "assets");
+if (isDev && fs.existsSync(demoAssetsPath)) {
+  app.use(
+    "/demo-assets",
+    express.static(demoAssetsPath, {
+      maxAge: "1d",
+      setHeaders: (res) => {
+        res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      },
+    })
+  );
+}
+
 const frontendPath = path.join(__dirname, "dist");
 if (fs.existsSync(frontendPath)) {
   app.use(

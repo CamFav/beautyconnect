@@ -3,6 +3,10 @@ const fs = require("fs");
 const mongoose = require("mongoose");
 let MongoMemoryServer; // lazy-loaded only if needed
 
+// Keep downloaded test binaries inside the repository so local Windows runs do
+// not depend on a writable user-level cache directory.
+process.env.MONGOMS_DOWNLOAD_DIR = path.resolve(__dirname, "../../.cache/mongodb-binaries");
+
 jest.setTimeout(120000);
 
 let mongo;

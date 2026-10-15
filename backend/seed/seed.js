@@ -23,17 +23,26 @@ const ProDetails = require("../models/ProDetails");
 const Post = require("../models/Post");
 const Reservation = require("../models/Reservation");
 
-const atlasUri =
-  process.env.MONGO_ATLAS_URI ||
-  process.env.MONGO_ATLAS_URL ||
-  process.env.ATLAS_URI ||
-  process.env.MONGODB_ATLAS_URI;
-if (atlasUri) {
-  process.env.MONGODB_URI = atlasUri;
-  const host = atlasUri.includes("@")
-    ? atlasUri.split("@")[1]
-    : atlasUri.replace(/\/\/([^@]+)@/, "//***@");
-  console.log(`[seed] Cible Mongo Atlas: ${host}`);
+function assertLocalSeedTarget() {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Le seed est interdit avec NODE_ENV=production.");
+  }
+
+  const uri = process.env.MONGODB_URI || process.env.MONGO_URI || process.env.MONGO_URL;
+  if (!uri) {
+    throw new Error("MONGO_URL doit pointer vers MongoDB local.");
+  }
+
+  let host;
+  try {
+    host = new URL(uri).hostname.toLowerCase();
+  } catch (_) {
+    throw new Error("URI MongoDB invalide pour le seed.");
+  }
+
+  if (!["localhost", "127.0.0.1", "::1", "mongo"].includes(host)) {
+    throw new Error("Le seed est limité à MongoDB local (localhost ou le service Docker mongo).");
+  }
 }
 
 const EMAIL_DOMAIN = "@demo.local";
@@ -170,7 +179,7 @@ const PRO_TEMPLATES = [
     city: "Lille",
     address: "12 Rue de la Barre, 59800 Lille",
     status: "salon",
-    experience: "3+ ans",
+    experience: "2+ ans",
     services: [
       { name: "Pose complète gel", duration: 90, price: 70 },
       { name: "Remplissage + nail art", duration: 75, price: 60 },
@@ -201,7 +210,7 @@ const PRO_TEMPLATES = [
     city: "Nantes",
     address: null,
     status: "freelance",
-    experience: "4+ ans",
+    experience: "5+ ans",
     exerciseType: ["domicile", "exterieur"],
     services: [
       { name: "Maquillage shooting", duration: 60, price: 110 },
@@ -233,7 +242,7 @@ const PRO_TEMPLATES = [
     city: "Montpellier",
     address: null,
     status: "freelance",
-    experience: "3+ ans",
+    experience: "2+ ans",
     exerciseType: ["exterieur"],
     services: [
       { name: "Session portrait 1h", duration: 60, price: 130 },
@@ -281,15 +290,27 @@ function loadImageCatalog() {
   }
 }
 const imagesCatalog = loadImageCatalog();
+const DEMO_ASSET_BASE_URL = (process.env.DEMO_ASSET_BASE_URL || "http://localhost:5000/demo-assets").replace(/\/$/, "");
 
-const DEFAULT_HEADERS = [
-  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-  "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f",
-  "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f",
-];
+function imageCategory(template) {
+  if (template.key === "onglerie_lille") return "onglerie";
+  if (template.category === "Coiffure") return "coiffure";
+  if (template.category === "Tatouage") return "tatouage";
+  if (template.category === "Maquillage" || template.category === "Autre") return "maquillage";
+  return "esthetique";
+}
 
-function fallbackAvatar(seed, size = 400) {
-  return `https://picsum.photos/seed/${encodeURIComponent(seed)}/${size}/${size}`;
+function demoAsset(filename) {
+  return filename ? `${DEMO_ASSET_BASE_URL}/${filename}` : null;
+}
+
+function proImages(template) {
+  const categoryImages = imagesCatalog?.[imageCategory(template)] || {};
+  return {
+    avatar: demoAsset(categoryImages.avatar),
+    header: demoAsset(categoryImages.header),
+    posts: (categoryImages.posts || []).map(demoAsset).filter(Boolean),
+  };
 }
 
 function weeklyAvailability() {
@@ -355,18 +376,6 @@ const isTruthy = (value) =>
   ["1", "true", "yes", "on"]
     .includes(String(value).trim().toLowerCase());
 
-async function resetDatabase() {
-  const dbName = mongoose.connection?.db?.databaseName || "(inconnu)";
-  console.warn(`[seed] RESET DB demandé -> drop de "${dbName}"`);
-  try {
-    await mongoose.connection.dropDatabase();
-    console.log(`[seed] Base "${dbName}" réinitialisée (dropDatabase).`);
-  } catch (err) {
-    console.error("[seed] Impossible de dropDatabase :", err.message);
-    throw err;
-  }
-}
-
 async function clearDemoData() {
   const regex = new RegExp(`${EMAIL_DOMAIN.replace(/\./g, "\\.")}$`, "i");
   const users = await User.find({ email: { $regex: regex } }, { _id: 1 }).lean();
@@ -402,13 +411,7 @@ async function ensureUser(payload) {
 async function seedPros() {
   const results = [];
   for (const template of PRO_TEMPLATES) {
-    const avatarList = imagesCatalog?.avatars?.pro;
-    const headerList = imagesCatalog?.headers?.pro;
-    const avatar = Array.isArray(avatarList) && avatarList.length ? avatarList[template.category ? template.category.length % avatarList.length : 0] : fallbackAvatar(template.key);
-    const header =
-      Array.isArray(headerList) && headerList.length
-        ? headerList[Math.floor(Math.random() * headerList.length)]
-        : DEFAULT_HEADERS[Math.floor(Math.random() * DEFAULT_HEADERS.length)];
+    const { avatar, header } = proImages(template);
     const businessName =
       template.businessName ||
       (template.status === "salon"
@@ -460,11 +463,7 @@ async function seedPros() {
 async function seedClients() {
   const results = [];
   for (const template of CLIENT_TEMPLATES) {
-    const avatarList = imagesCatalog?.avatars?.client;
-    const avatar =
-      Array.isArray(avatarList) && avatarList.length
-        ? avatarList[Math.floor(Math.random() * avatarList.length)]
-        : fallbackAvatar(template.email, 300);
+    const avatar = demoAsset(imagesCatalog?.client?.avatar);
 
     const user = await ensureUser({
       name: template.name,
@@ -486,12 +485,10 @@ async function seedClients() {
 async function seedPosts(pros) {
   const payloads = [];
   for (const { user, template } of pros) {
-    const images = imagesCatalog?.posts?.[template.category] || [];
+    const images = proImages(template).posts;
     const postsPerPro = template.postsCount ?? 6;
     for (let i = 0; i < postsPerPro; i++) {
-      const media =
-        images[i % images.length] ||
-        `https://picsum.photos/seed/${encodeURIComponent(template.key + i)}/900/700`;
+      const media = images[i % images.length];
       payloads.push({
         provider: user._id,
         mediaUrl: media,
@@ -562,18 +559,16 @@ async function verifySeed() {
 
 (async () => {
   try {
+    assertLocalSeedTarget();
     await connectDB();
 
-    const shouldResetDb = isTruthy(process.env.SEED_RESET_DB || process.env.SEED_RESET);
-    const shouldClearDemo = isTruthy(process.env.SEED_CLEAR);
-
-    if (shouldResetDb) {
-      await resetDatabase();
-    } else if (shouldClearDemo) {
-      console.log("[seed] Suppression des comptes demo...");
-      const cleared = await clearDemoData();
-      console.log("[seed] Supprimé :", cleared);
+    if (isTruthy(process.env.SEED_RESET_DB || process.env.SEED_RESET)) {
+      throw new Error("SEED_RESET_DB et SEED_RESET ne sont plus pris en charge.");
     }
+
+    console.log("[seed] Remplacement des données de démonstration locales...");
+    const cleared = await clearDemoData();
+    console.log("[seed] Données demo supprimées :", cleared);
 
     console.log("[seed] Création des professionnels...");
     const pros = await seedPros();

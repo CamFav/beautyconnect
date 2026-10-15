@@ -1,0 +1,12 @@
+node_modules/
+coverage/
+dist/
+build/
+dev-dist/
+logs/
+.env*
+npm-debug.log*
+*.log
+.cache/
+test-results/
+playwright-report/

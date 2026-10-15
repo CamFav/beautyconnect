@@ -1,5 +1,9 @@
 # Node
 node_modules/
+coverage/
+dist/
+build/
+dev-dist/
 
 # Logs
 npm-debug.log*
@@ -16,15 +20,38 @@ mongo_data/
 
 # Environnements
 .env
-.env.local
-.env.test
-.env.production
-.env.development
+.env.*
+!.env.example
 
 dist/login.json
 role.json
 
 archive/
+
+# Local reports and OS files
+audit-report.json
+lighthouse-report.json
+.DS_Store
+.cache/
+.npm-cache/
+.eslintcache
+test-results/
+playwright-report/
+*.tsbuildinfo
+
+# Local IDE and temporary files
+.vscode/
+.idea/
+*.code-workspace
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Generated repository inventories
+arbo.txt
+project_tree.txt
+structure.txt
 
 # --- Backups ---
 /backup/
