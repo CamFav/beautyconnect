@@ -24,9 +24,6 @@ beforeAll(async () => {
     require("dotenv").config({ path: path.resolve(__dirname, "../../.env.test") });
   } catch (_) {}
 
-  process.env.JWT_SECRET = process.env.JWT_SECRET || "testsecret";
-  process.env.NODE_ENV = "test";
-
   // Detect Alpine to avoid mongodb-memory-server (unsupported)
   const isAlpine = (() => {
     try {
@@ -37,7 +34,9 @@ beforeAll(async () => {
     }
   })();
 
-  const externalUrl = process.env.MONGO_URL || process.env.TEST_MONGO_URL;
+  // Never attach the test cleanup hooks to the application's MONGO_URL.
+  // An external test database must be opted into explicitly.
+  const externalUrl = process.env.TEST_MONGO_URL;
   let connected = false;
 
   if (externalUrl) {

@@ -1,6 +1,7 @@
 module.exports = {
   rootDir: __dirname,
   testEnvironment: "node",
+  setupFiles: ["<rootDir>/__tests__/setup/test-env.js"],
   setupFilesAfterEnv: ["<rootDir>/__tests__/setup/test-setup.js"],
   testMatch: ["**/__tests__/**/*.test.js"],
   collectCoverage: true,
